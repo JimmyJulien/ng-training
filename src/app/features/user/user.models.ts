@@ -9,3 +9,7 @@ export interface UserModel {
 }
 
 export type UserEditionModel = Omit<UserModel, 'id'> & { id?: string };
+
+export type UserFiltersModel = Partial<
+  Pick<UserModel, 'name' | 'email' | 'birthdate'>
+>;

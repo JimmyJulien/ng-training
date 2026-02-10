@@ -8,11 +8,4 @@ export const routes: Routes = [
         (c) => c.UserSearchingPage,
       ),
   },
-  {
-    path: ':id',
-    loadComponent: () =>
-      import('./user-consultation/user-consultation.page').then(
-        (c) => c.UserConsultationPage,
-      ),
-  },
 ];
