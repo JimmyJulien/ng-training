@@ -1,5 +1,4 @@
 import { inject, Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
 import { UserModel } from './user.models';
 import { UserRepository } from './user.repository';
 
@@ -9,15 +8,13 @@ import { UserRepository } from './user.repository';
 export class UserService {
   readonly #userRepository = inject(UserRepository);
 
-  // TODO JJN others methodes CRUD
-
-  getUserByName(name: UserModel['name']): Observable<UserModel | null> {
-    return this.#userRepository
-      .getUsers({ name })
-      .pipe(map((users) => users[0] ?? null));
+  async getUserByName(name: UserModel['name']): Promise<UserModel | null> {
+    const users = await this.#userRepository.getUsers({ name });
+    return users[0] ?? null;
   }
 
-  existUserByName(name: UserModel['name']): Observable<boolean> {
-    return this.getUserByName(name).pipe(map((user) => !!user));
+  async existUserByName(name: UserModel['name']): Promise<boolean> {
+    const user = await this.getUserByName(name);
+    return !!user;
   }
 }

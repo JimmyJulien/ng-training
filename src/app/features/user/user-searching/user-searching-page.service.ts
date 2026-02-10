@@ -1,12 +1,11 @@
-import { inject, Injectable, signal } from '@angular/core';
-import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { inject, Injectable, resource, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { catchError, EMPTY, filter, map, mergeMap, tap } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { AppService } from '../../../core/services/app.service';
 import { UserDeletionDialog } from '../user-deletion/user-deletion.dialog';
 import { UserEditionDialog } from '../user-edition/user-edition.dialog';
-import { UserEditionModel, UserModel } from '../user.models';
+import { UserEditionModel, UserFiltersModel, UserModel } from '../user.models';
 import { UserRepository } from '../user.repository';
 
 @Injectable({
@@ -18,114 +17,76 @@ export class UserSearchingPageService {
   readonly #dialog = inject(MatDialog);
   readonly #snackbar = inject(MatSnackBar);
 
-  #userListFilters = signal<Partial<UserModel>>({});
+  #userListFilters = signal<UserFiltersModel>({});
 
-  userListResource = rxResource({
+  #userList = resource({
     params: this.#userListFilters,
-    stream: (resourceParams) => {
+    loader: (resourceParams) => {
       return this.#userRepository.getUsers(resourceParams.params);
     },
   });
 
-  #userToEdit = signal<UserModel | undefined>(undefined);
-
-  // eslint-disable-next-line no-unused-private-class-members
-  #editUserAction = toSignal(
-    toObservable(this.#userToEdit).pipe(
-      filter((userToEdit) => {
-        return !!userToEdit;
-      }),
-      mergeMap((userToEdit) => {
-        return this.#dialog
-          .open(UserEditionDialog, {
-            disableClose: true,
-            width: '50vw',
-            data: userToEdit,
-          })
-          .afterClosed();
-      }),
-      filter((userToEdit: UserModel | undefined) => {
-        return !!userToEdit;
-      }),
-      tap(() => {
-        this.#stateService.lockUi();
-      }),
-      mergeMap((userToEdit) => {
-        if (userToEdit.id) {
-          return this.#userRepository.updateUser(userToEdit);
-        } else {
-          return this.#userRepository.createUser(userToEdit);
-        }
-      }),
-      tap(() => {
-        this.#stateService.unlockUi();
-        this.#snackbar.open('User created !', 'Close');
-        this.userListResource.reload();
-        this.#userToEdit.set(undefined);
-      }),
-      catchError((error) => {
-        this.#stateService.unlockUi();
-        this.#snackbar.open(`Error: ${error}`, 'Close');
-        this.#userToEdit.set(undefined);
-        return EMPTY;
-      }),
-    ),
-  );
-
-  #userToDelete = signal<UserModel | undefined>(undefined);
-
-  // eslint-disable-next-line no-unused-private-class-members
-  #deleteUserAction = toSignal(
-    toObservable(this.#userToDelete).pipe(
-      filter(
-        (userToDelete: UserModel | undefined) => userToDelete !== undefined,
-      ),
-      mergeMap((userToDelete: UserModel) => {
-        return this.#dialog
-          .open(UserDeletionDialog, {
-            disableClose: true,
-          })
-          .afterClosed()
-          .pipe(
-            map((isConfirmed: boolean) => {
-              if (!isConfirmed) {
-                this.#userToDelete.set(undefined);
-                return undefined;
-              }
-
-              return userToDelete;
-            }),
-          );
-      }),
-      filter((userToDelete: UserModel | undefined) => !!userToDelete),
-      tap(() => {
-        this.#stateService.lockUi();
-      }),
-      mergeMap((userToDelete: UserModel) =>
-        this.#userRepository.deleteUser(userToDelete.id),
-      ),
-      tap(() => {
-        this.#stateService.unlockUi();
-        this.#snackbar.open('User deleted !', 'Close');
-        this.userListResource.reload();
-      }),
-      catchError((error) => {
-        this.#stateService.unlockUi();
-        this.#snackbar.open(`Error: ${error}`, 'Close');
-        return EMPTY;
-      }),
-    ),
-  );
-
-  editUser(userToEdit: UserModel) {
-    this.#userToEdit.set(userToEdit);
-  }
-
-  deleteUser(userToDelete: UserModel) {
-    this.#userToDelete.set(userToDelete);
-  }
+  userList = this.#userList.asReadonly();
 
   filterUserList(filters: Partial<UserEditionModel>) {
     this.#userListFilters.set({ ...filters });
+  }
+
+  async editUser(userToEdit: UserModel) {
+    const isUserEdited = await firstValueFrom(
+      this.#dialog
+        .open(UserEditionDialog, {
+          disableClose: true,
+          width: '50vw',
+          data: userToEdit,
+        })
+        .afterClosed(),
+    );
+
+    if (!isUserEdited) {
+      return;
+    }
+
+    try {
+      this.#stateService.lockUi();
+
+      if (userToEdit.id) {
+        await this.#userRepository.updateUser(userToEdit);
+      } else {
+        await this.#userRepository.createUser(userToEdit);
+      }
+
+      this.#snackbar.open('User created !', 'Close');
+      this.#userList.reload();
+    } catch (error) {
+      this.#snackbar.open(`Error: ${error}`, 'Close');
+    } finally {
+      this.#stateService.unlockUi();
+    }
+  }
+
+  async deleteUser(userToDelete: UserModel) {
+    const isDeletionConfirmed = await firstValueFrom(
+      this.#dialog
+        .open(UserDeletionDialog, {
+          disableClose: true,
+        })
+        .afterClosed(),
+    );
+
+    if (!isDeletionConfirmed) {
+      return;
+    }
+
+    try {
+      this.#stateService.lockUi();
+      await this.#userRepository.deleteUser(userToDelete.id);
+      this.#snackbar.open('User deleted !', 'Close');
+      this.#userList.reload();
+    } catch (error) {
+      this.#snackbar.open(`Error: ${error}`, 'Close');
+    } finally {
+      this.#stateService.unlockUi();
+    }
   }
 }

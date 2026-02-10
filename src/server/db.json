@@ -1,19 +1,6 @@
 {
   "users": [
     {
-      "id": "8cc9",
-      "name": "vfdv dwv",
-      "email": "csdws@mail.com",
-      "birthdate": "2025-12-31T23:00:00.000Z"
-    },
-    {
-      "id": "ff3e",
-      "name": "bla",
-      "email": "t@t.com",
-      "birthdate": "1990-12-31T23:00:00.000Z",
-      "representant": ""
-    },
-    {
       "id": "7477",
       "name": "blab",
       "email": "p@pouic.fr",
@@ -122,6 +109,14 @@
       ],
       "password": "mastasloth",
       "confirmPassword": "mastasloth"
+    },
+    {
+      "id": "",
+      "name": "",
+      "email": "",
+      "birthdate": "",
+      "pets": [],
+      "password": ""
     }
   ]
 }

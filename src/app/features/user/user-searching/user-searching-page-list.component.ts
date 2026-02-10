@@ -26,7 +26,7 @@ import { UserSearchingPageService } from './user-searching-page.service';
 export class UserSearchingPageListComponent {
   readonly #userSearchingPageService = inject(UserSearchingPageService);
 
-  userListResource = this.#userSearchingPageService.userListResource;
+  userListResource = this.#userSearchingPageService.userList;
 
   displayedColumns = ['name', 'email', 'birthdate', 'actions'];
 

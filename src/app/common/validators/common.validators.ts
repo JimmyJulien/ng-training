@@ -1,4 +1,4 @@
-import { rxResource } from '@angular/core/rxjs-interop';
+import { resource } from '@angular/core';
 import {
   customError,
   debounce,
@@ -6,7 +6,6 @@ import {
   validate,
   validateAsync,
 } from '@angular/forms/signals';
-import { Observable } from 'rxjs';
 
 export function stringBetween({
   path,
@@ -41,7 +40,7 @@ export function unique({
   debounceTime = 500,
 }: {
   path: SchemaPath<string>;
-  checkFn: (params: string) => Observable<boolean>;
+  checkFn: (params: string) => Promise<boolean>;
   debounceTime?: number;
 }) {
   debounce(path, debounceTime);
@@ -49,9 +48,9 @@ export function unique({
   validateAsync(path, {
     params: ({ value }) => value(),
     factory: (value) =>
-      rxResource({
+      resource({
         params: value,
-        stream: ({ params }) => {
+        loader: ({ params }) => {
           return checkFn(params);
         },
       }),
