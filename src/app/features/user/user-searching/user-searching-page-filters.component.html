@@ -1,0 +1,19 @@
+<mat-expansion-panel expanded disabled class="h-full">
+  <mat-expansion-panel-header>
+    <mat-panel-title>Filters</mat-panel-title>
+  </mat-expansion-panel-header>
+
+  <form class="grid gap-4">
+    <ngt-input-text-field label="Name" [field]="form.name" />
+
+    <ngt-input-text-field label="Email Address" [field]="form.email" />
+
+    <ngt-input-date-field label="Birth Date" [field]="form.birthdate" />
+
+    <div class="flex items-center justify-center">
+      <button matButton="outlined" type="button" (click)="onSubmit()">
+        Filter
+      </button>
+    </div>
+  </form>
+</mat-expansion-panel>

@@ -1,0 +1,127 @@
+{
+  "users": [
+    {
+      "id": "8cc9",
+      "name": "vfdv dwv",
+      "email": "csdws@mail.com",
+      "birthdate": "2025-12-31T23:00:00.000Z"
+    },
+    {
+      "id": "ff3e",
+      "name": "bla",
+      "email": "t@t.com",
+      "birthdate": "1990-12-31T23:00:00.000Z",
+      "representant": ""
+    },
+    {
+      "id": "7477",
+      "name": "blab",
+      "email": "p@pouic.fr",
+      "birthdate": "1994-12-31T23:00:00.000Z",
+      "representant": ""
+    },
+    {
+      "id": "df4f",
+      "name": "kwap",
+      "email": "kwap@mail.dog",
+      "birthdate": "2024-12-31T23:00:00.000Z",
+      "representant": "test",
+      "password": "azertyuiop",
+      "confirmPassword": "azertyuiop"
+    },
+    {
+      "id": "dbe0",
+      "name": "gtrtg",
+      "email": "grt@m.com",
+      "birthdate": "1999-12-31T23:00:00.000Z",
+      "representant": "",
+      "password": "testestest",
+      "confirmPassword": "testestest"
+    },
+    {
+      "id": "28d3",
+      "name": "cqvfdv",
+      "email": "h@f.fr",
+      "birthdate": "2012-12-11T23:00:00.000Z",
+      "representant": "bla",
+      "password": "aaaaaaaa",
+      "confirmPassword": "aaaaaaaa"
+    },
+    {
+      "id": "325f",
+      "name": "name",
+      "email": "name@name.name",
+      "birthdate": "2004-04-03T22:00:00.000Z",
+      "representant": "",
+      "password": "namenamename",
+      "confirmPassword": "namenamename"
+    },
+    {
+      "id": "0807",
+      "name": "name2",
+      "email": "n2@n2.com",
+      "birthdate": "2003-01-24T23:00:00.000Z",
+      "representant": "",
+      "password": "name2name2",
+      "confirmPassword": "name2name2"
+    },
+    {
+      "id": "6993",
+      "name": "name3",
+      "email": "n3@n3.fr",
+      "birthdate": "1998-04-06T22:00:00.000Z",
+      "representant": "",
+      "password": "11111111",
+      "confirmPassword": "11111111"
+    },
+    {
+      "id": "bbcf",
+      "name": "name4",
+      "email": "n4@mail.com",
+      "birthdate": "2002-02-01T23:00:00.000Z",
+      "representant": "",
+      "password": "22222222",
+      "confirmPassword": "22222222"
+    },
+    {
+      "id": "9e6b",
+      "name": "name5",
+      "email": "n5@n5.n5",
+      "birthdate": "2005-05-04T22:00:00.000Z",
+      "representant": "",
+      "password": "55555555",
+      "confirmPassword": "55555555"
+    },
+    {
+      "id": "3eae",
+      "name": "name6",
+      "email": "n6@n6.fr",
+      "birthdate": "2006-06-05T22:00:00.000Z",
+      "representant": "",
+      "password": "66666666",
+      "confirmPassword": "66666666"
+    },
+    {
+      "id": "e6d7",
+      "name": "blabla",
+      "email": "bla@bla.com",
+      "birthdate": "2000-04-11T22:00:00.000Z",
+      "representant": "",
+      "pets": [],
+      "password": "couicouic",
+      "confirmPassword": "couicouic"
+    },
+    {
+      "id": "06d1",
+      "name": "mastasloth",
+      "email": "masta@mail.waf",
+      "birthdate": "2006-02-28T23:00:00.000Z",
+      "representant": "",
+      "pets": [
+        "kwapy"
+      ],
+      "password": "mastasloth",
+      "confirmPassword": "mastasloth"
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+<div class="grid grid-cols-[1fr_auto] items-center pr-4">
+  <h2 mat-dialog-title>User edition</h2>
+  <div>
+    <button matIconButton mat-dialog-close>
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+</div>
+
+<mat-dialog-content>
+  <form class="grid gap-4">
+    <ngt-input-text-field
+      label="Name"
+      [field]="form.name"
+      [hint]="
+        form.name().pending()
+          ? 'Checking availability...'
+          : 'Between 3 and 20 characters'
+      "
+      [error]="form.name().errors()[0]?.message"
+    />
+
+    <ngt-input-text-field
+      label="Email Address"
+      [field]="form.email"
+      hint="Ex: jimmy.julien@mail.fr"
+      [error]="form.email().errors()[0]?.message"
+    />
+
+    <ngt-input-date-field
+      label="Birth Date"
+      [field]="form.birthdate"
+      hint="MM/DD/YYYY"
+      [error]="form.birthdate().errors()[0]?.message"
+    />
+
+    @if (isUserUnder16()) {
+      <ngt-input-text-field
+        label="Representant"
+        [field]="form.representant"
+        hint="Required under 16"
+        [error]="form.representant().errors()[0]?.message"
+      />
+    }
+
+    @for (pet of form.pets; track pet()) {
+      <div class="grid grid-cols-[1fr_auto_auto] gap-4">
+        <ngt-input-text-field
+          [label]="`Pet ${$index + 1}`"
+          [field]="pet"
+          hint="Minimum 2 characters"
+          [error]="pet().errors()[0]?.message"
+        />
+        @if ($first) {
+          <button matMiniFab type="button" (click)="addPet()">
+            <mat-icon>add</mat-icon>
+          </button>
+        } @else {
+          <button matMiniFab type="button" (click)="removePet($index)">
+            <mat-icon>remove</mat-icon>
+          </button>
+        }
+      </div>
+    }
+
+    <ngt-input-text-field
+      label="Password"
+      [field]="form.password"
+      inputType="password"
+      hint="Strong password"
+      [error]="form.password().errors()[0]?.message"
+    />
+
+    <ngt-input-text-field
+      label="Confirm Password"
+      [field]="form.confirmPassword"
+      inputType="password"
+      hint="Same password as above"
+      [error]="form.confirmPassword().errors()[0]?.message"
+    />
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button matButton="outlined" mat-dialog-close>Cancel</button>
+  <button
+    matButton="filled"
+    [disabled]="!form().touched() || form().invalid() || form().pending()"
+    [mat-dialog-close]="form().value()"
+  >
+    Submit
+  </button>
+</mat-dialog-actions>

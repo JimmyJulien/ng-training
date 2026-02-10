@@ -1,0 +1,17 @@
+<div class="grid grid-cols-[1fr_auto] items-center pr-4">
+  <h2 mat-dialog-title>User deletion</h2>
+  <div>
+    <button matIconButton mat-dialog-close>
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+</div>
+
+<mat-dialog-content> Are you sure ? </mat-dialog-content>
+
+<mat-dialog-actions>
+  <button matButton="outlined" [mat-dialog-close]="false">No</button>
+  <button matButton="filled" class="!bg-red-500" [mat-dialog-close]="true">
+    Yes
+  </button>
+</mat-dialog-actions>
