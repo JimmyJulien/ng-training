@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { mergeMap, Observable, timer } from 'rxjs';
-import { UserEditionModel, UserModel } from './user.models';
+import { UserFiltersModel, UserModel } from './user.models';
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +11,7 @@ export class UserRepository {
 
   readonly #http = inject(HttpClient);
 
-  getUsers(filters: Partial<UserEditionModel>): Observable<UserModel[]> {
+  getUsers(filters: UserFiltersModel): Observable<UserModel[]> {
     return timer(2000).pipe(
       mergeMap(() =>
         this.#http.get<UserModel[]>(this.USER_API_URL, {
@@ -19,23 +19,12 @@ export class UserRepository {
         }),
       ),
     );
-
-    // await new Promise((resolve) => setTimeout(resolve, 2000));
-    // const response = await fetch(this.USER_API_URL);
-    // return response.json();
   }
 
   createUser(user: UserModel): Observable<UserModel> {
     return timer(2000).pipe(
       mergeMap(() => this.#http.post<UserModel>(this.USER_API_URL, user)),
     );
-
-    // await new Promise((resolve) => setTimeout(resolve, 2000));
-    // const response = await fetch(this.USER_API_URL, {
-    //   method: 'POST',
-    //   body: JSON.stringify(user),
-    // });
-    // return response.json();
   }
 
   updateUser(user: UserModel): Observable<UserModel> {
@@ -52,11 +41,5 @@ export class UserRepository {
         this.#http.delete<boolean>(`${this.USER_API_URL}/${userId}`),
       ),
     );
-
-    // await new PromiseRejectionEvent(resolve => setTimeout(resolve, 2000));
-    // const response = await fetch(`${this.USER_API_URL}/${userId}`, {
-    //   method: 'DELETE',
-    // });
-    // return response.json();
   }
 }

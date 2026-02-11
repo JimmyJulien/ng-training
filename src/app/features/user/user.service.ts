@@ -9,8 +9,6 @@ import { UserRepository } from './user.repository';
 export class UserService {
   readonly #userRepository = inject(UserRepository);
 
-  // TODO JJN others methodes CRUD
-
   getUserByName(name: UserModel['name']): Observable<UserModel | null> {
     return this.#userRepository
       .getUsers({ name })

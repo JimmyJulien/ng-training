@@ -26,7 +26,7 @@ import { AppLayout } from './app-layout.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
-  readonly #stateService = inject(AppService);
+  readonly #appService = inject(AppService);
 
-  isUiLocked = this.#stateService.isUiLocked;
+  isUiLocked = this.#appService.isUiLocked;
 }

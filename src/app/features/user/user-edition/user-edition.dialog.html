@@ -1,7 +1,7 @@
 <div class="grid grid-cols-[1fr_auto] items-center pr-4">
   <h2 mat-dialog-title>User edition</h2>
   <div>
-    <button matIconButton mat-dialog-close>
+    <button matIconButton mat-dialog-close matTooltip="Close dialog">
       <mat-icon>close</mat-icon>
     </button>
   </div>
@@ -43,25 +43,38 @@
       />
     }
 
-    @for (pet of form.pets; track pet()) {
-      <div class="grid grid-cols-[1fr_auto_auto] gap-4">
-        <ngt-input-text-field
-          [label]="`Pet ${$index + 1}`"
-          [field]="pet"
-          hint="Minimum 2 characters"
-          [error]="pet().errors()[0]?.message"
-        />
-        @if ($first) {
-          <button matMiniFab type="button" (click)="addPet()">
-            <mat-icon>add</mat-icon>
-          </button>
-        } @else {
-          <button matMiniFab type="button" (click)="removePet($index)">
-            <mat-icon>remove</mat-icon>
-          </button>
-        }
-      </div>
-    }
+    <fieldset>
+      <legend class="sr-only">Pets</legend>
+      @for (pet of form.pets; track pet()) {
+        <div class="grid grid-cols-[1fr_auto_auto] gap-4">
+          <ngt-input-text-field
+            [label]="`Pet ${$index + 1}`"
+            [field]="pet"
+            hint="Minimum 2 characters"
+            [error]="pet().errors()[0]?.message"
+          />
+          @if ($first) {
+            <button
+              matMiniFab
+              type="button"
+              matTooltip="Add a pet"
+              (click)="addPet()"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+          } @else {
+            <button
+              matMiniFab
+              type="button"
+              matTooltip="Remove a pet"
+              (click)="removePet($index)"
+            >
+              <mat-icon>remove</mat-icon>
+            </button>
+          }
+        </div>
+      }
+    </fieldset>
 
     <ngt-input-text-field
       label="Password"
@@ -82,12 +95,16 @@
 </mat-dialog-content>
 
 <mat-dialog-actions>
-  <button matButton="outlined" mat-dialog-close>Cancel</button>
+  <button matButton="outlined" mat-dialog-close>
+    <mat-icon>close</mat-icon>
+    Cancel
+  </button>
   <button
     matButton="filled"
     [disabled]="!form().touched() || form().invalid() || form().pending()"
     [mat-dialog-close]="form().value()"
   >
+    <mat-icon>check</mat-icon>
     Submit
   </button>
 </mat-dialog-actions>

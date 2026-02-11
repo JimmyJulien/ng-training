@@ -22,6 +22,7 @@ import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { InputDateField } from '../../../common/components/input-date-field.component';
 import { InputTextField } from '../../../common/components/input-text-field.component';
 import {
@@ -46,6 +47,7 @@ type UserEditionFormModel = Required<Omit<UserEditionModel, 'id' | 'pets'>> & {
     MatFormFieldModule,
     MatInputModule,
     MatDatepickerModule,
+    MatTooltipModule,
     InputTextField,
     InputDateField,
   ],

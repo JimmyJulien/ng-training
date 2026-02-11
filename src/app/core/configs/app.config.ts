@@ -2,7 +2,7 @@ import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 
 import { provideNativeDateAdapter } from '@angular/material/core';
 import {
@@ -14,7 +14,7 @@ import { routes } from '../routes/app.routes';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    provideRouter(routes, withComponentInputBinding()),
     provideNativeDateAdapter(),
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,

@@ -8,4 +8,9 @@ export const routes: Routes = [
         (c) => c.UserSearchingPage,
       ),
   },
+  {
+    path: ':userName',
+    loadComponent: () =>
+      import('./user-details/user-details.page').then((c) => c.UserDetailsPage),
+  },
 ];

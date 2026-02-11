@@ -6,13 +6,17 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterModule } from '@angular/router';
 import { UserModel } from '../user.models';
 import { UserSearchingPageService } from './user-searching-page.service';
 
 @Component({
   selector: 'ngt-user-searching-page-list',
   imports: [
+    RouterModule,
     MatButtonModule,
+    MatTooltipModule,
     MatProgressSpinnerModule,
     MatTableModule,
     MatDialogModule,
@@ -26,7 +30,7 @@ import { UserSearchingPageService } from './user-searching-page.service';
 export class UserSearchingPageListComponent {
   readonly #userSearchingPageService = inject(UserSearchingPageService);
 
-  userListResource = this.#userSearchingPageService.userListResource;
+  userList = this.#userSearchingPageService.userList;
 
   displayedColumns = ['name', 'email', 'birthdate', 'actions'];
 

@@ -1,12 +1,13 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { catchError, EMPTY, filter, map, mergeMap, tap } from 'rxjs';
+import { catchError, EMPTY, filter, map, mergeMap, of, tap } from 'rxjs';
 import { AppService } from '../../../core/services/app.service';
 import { UserDeletionDialog } from '../user-deletion/user-deletion.dialog';
 import { UserEditionDialog } from '../user-edition/user-edition.dialog';
-import { UserEditionModel, UserModel } from '../user.models';
+import { UserEditionModel, UserFiltersModel, UserModel } from '../user.models';
 import { UserRepository } from '../user.repository';
 
 @Injectable({
@@ -18,16 +19,38 @@ export class UserSearchingPageService {
   readonly #dialog = inject(MatDialog);
   readonly #snackbar = inject(MatSnackBar);
 
-  #userListFilters = signal<Partial<UserModel>>({});
+  #userFilters = signal<UserFiltersModel>({});
 
-  userListResource = rxResource({
-    params: this.#userListFilters,
+  #userList = rxResource({
+    params: this.#userFilters,
     stream: (resourceParams) => {
-      return this.#userRepository.getUsers(resourceParams.params);
+      return this.#userRepository.getUsers(resourceParams.params).pipe(
+        catchError((error: unknown) => {
+          let message = 'An error occurred';
+
+          if (error instanceof HttpErrorResponse) {
+            message = error.message;
+          }
+
+          this.#snackbar.open(`Error: ${message}`, 'Close');
+
+          return of([]);
+        }),
+      );
     },
   });
 
+  userList = this.#userList.asReadonly();
+
+  filterUserList(filters: Partial<UserEditionModel>) {
+    this.#userFilters.set({ ...filters });
+  }
+
   #userToEdit = signal<UserModel | undefined>(undefined);
+
+  editUser(userToEdit: UserModel) {
+    this.#userToEdit.set(userToEdit);
+  }
 
   // eslint-disable-next-line no-unused-private-class-members
   #editUserAction = toSignal(
@@ -60,19 +83,32 @@ export class UserSearchingPageService {
       tap(() => {
         this.#stateService.unlockUi();
         this.#snackbar.open('User created !', 'Close');
-        this.userListResource.reload();
+        this.#userList.reload();
         this.#userToEdit.set(undefined);
       }),
-      catchError((error) => {
+      catchError((error: unknown) => {
         this.#stateService.unlockUi();
-        this.#snackbar.open(`Error: ${error}`, 'Close');
+
+        let message = 'An error occurred';
+
+        if (error instanceof HttpErrorResponse) {
+          message = error.message;
+        }
+
+        this.#snackbar.open(`Error: ${message}`, 'Close');
+
         this.#userToEdit.set(undefined);
+
         return EMPTY;
       }),
     ),
   );
 
   #userToDelete = signal<UserModel | undefined>(undefined);
+
+  deleteUser(userToDelete: UserModel) {
+    this.#userToDelete.set(userToDelete);
+  }
 
   // eslint-disable-next-line no-unused-private-class-members
   #deleteUserAction = toSignal(
@@ -107,25 +143,23 @@ export class UserSearchingPageService {
       tap(() => {
         this.#stateService.unlockUi();
         this.#snackbar.open('User deleted !', 'Close');
-        this.userListResource.reload();
+        this.#userList.reload();
       }),
-      catchError((error) => {
+      catchError((error: unknown) => {
         this.#stateService.unlockUi();
-        this.#snackbar.open(`Error: ${error}`, 'Close');
+
+        let message = 'An error occurred';
+
+        if (error instanceof HttpErrorResponse) {
+          message = error.message;
+        }
+
+        this.#snackbar.open(`Error: ${message}`, 'Close');
+
+        this.#userToEdit.set(undefined);
+
         return EMPTY;
       }),
     ),
   );
-
-  editUser(userToEdit: UserModel) {
-    this.#userToEdit.set(userToEdit);
-  }
-
-  deleteUser(userToDelete: UserModel) {
-    this.#userToDelete.set(userToDelete);
-  }
-
-  filterUserList(filters: Partial<UserEditionModel>) {
-    this.#userListFilters.set({ ...filters });
-  }
 }
