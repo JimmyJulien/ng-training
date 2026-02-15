@@ -1,6 +1,5 @@
 import { rxResource } from '@angular/core/rxjs-interop';
 import {
-  customError,
   debounce,
   SchemaPath,
   validate,
@@ -25,10 +24,10 @@ export function stringBetween({
     }
 
     if (value.length < min || value.length > max) {
-      return customError({
+      return {
         kind: 'string_between',
         message: `Value must be between ${min} and ${max} characters`,
-      });
+      };
     }
 
     return null;
@@ -57,16 +56,19 @@ export function unique({
       }),
     onSuccess: (existing) => {
       if (existing) {
-        return customError({
+        return {
           kind: 'unique',
           message: 'This value is unavailable',
-        });
+        };
       }
       return null;
     },
     onError: (error) => {
       console.error('Error during validation', error);
-      return null;
+      return {
+        kind: 'failed_validation',
+        message: 'This value cannot be validated',
+      };
     },
   });
 }

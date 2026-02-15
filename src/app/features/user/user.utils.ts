@@ -1,4 +1,4 @@
-import { yearsFromToday } from '../../common/utils/date.utils';
+import { yearsFromToday } from '@common/utils/date.utils';
 
 export function isUnderAge(birthdate: string, limitAge: number): boolean {
   const years = yearsFromToday(birthdate);

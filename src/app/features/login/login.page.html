@@ -1,0 +1,20 @@
+<mat-card>
+  <mat-card-header>
+    <h1 mat-card-title>Log in</h1>
+  </mat-card-header>
+
+  <mat-card-content>
+    <form class="grid gap-4 p-8" (submit.prevent)="login()">
+      <ngt-input-text-field label="Login" [field]="form.login" />
+      <ngt-input-text-field
+        label="Password"
+        [field]="form.password"
+        inputType="password"
+      />
+      @if (areCredentialsInvalid()) {
+        <mat-error>Invalid credentials</mat-error>
+      }
+      <button type="submit" matButton="filled">Log in</button>
+    </form>
+  </mat-card-content>
+</mat-card>

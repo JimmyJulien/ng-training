@@ -11,8 +11,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { InputDateField } from '../../../common/components/input-date-field.component';
-import { InputTextField } from '../../../common/components/input-text-field.component';
+import { InputDateField } from '@common/components/input-date-field.component';
+import { InputTextField } from '@common/components/input-text-field.component';
 import { UserEditionModel } from '../user.models';
 import { UserSearchingPageService } from './user-searching-page.service';
 

@@ -4,7 +4,7 @@ import {
   computed,
   input,
 } from '@angular/core';
-import { Field, FieldTree } from '@angular/forms/signals';
+import { FieldTree, FormField } from '@angular/forms/signals';
 import {
   MatFormFieldModule,
   SubscriptSizing,
@@ -13,7 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'ngt-input-text-field',
-  imports: [MatFormFieldModule, MatInputModule, Field],
+  imports: [MatFormFieldModule, MatInputModule, FormField],
   templateUrl: './input-text-field.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -21,6 +21,7 @@ export class InputTextField {
   label = input.required<string>();
   field = input.required<FieldTree<string, string | number>>();
   inputType = input<'text' | 'password'>('text');
+  hidden = input<boolean>(false);
   hint = input<string>();
   error = input<string>();
   noMarginBottom = input<boolean>(true);

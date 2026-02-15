@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { mergeMap, Observable, timer } from 'rxjs';
+import { Observable } from 'rxjs';
 import { UserFiltersModel, UserModel } from './user.models';
 
 @Injectable({
@@ -12,34 +12,20 @@ export class UserRepository {
   readonly #http = inject(HttpClient);
 
   getUsers(filters: UserFiltersModel): Observable<UserModel[]> {
-    return timer(2000).pipe(
-      mergeMap(() =>
-        this.#http.get<UserModel[]>(this.USER_API_URL, {
-          params: filters,
-        }),
-      ),
-    );
+    return this.#http.get<UserModel[]>(this.USER_API_URL, {
+      params: filters,
+    });
   }
 
   createUser(user: UserModel): Observable<UserModel> {
-    return timer(2000).pipe(
-      mergeMap(() => this.#http.post<UserModel>(this.USER_API_URL, user)),
-    );
+    return this.#http.post<UserModel>(this.USER_API_URL, user);
   }
 
   updateUser(user: UserModel): Observable<UserModel> {
-    return timer(2000).pipe(
-      mergeMap(() =>
-        this.#http.put<UserModel>(`${this.USER_API_URL}/${user.id}`, user),
-      ),
-    );
+    return this.#http.put<UserModel>(`${this.USER_API_URL}/${user.id}`, user);
   }
 
   deleteUser(userId: UserModel['id']): Observable<boolean> {
-    return timer(2000).pipe(
-      mergeMap(() =>
-        this.#http.delete<boolean>(`${this.USER_API_URL}/${userId}`),
-      ),
-    );
+    return this.#http.delete<boolean>(`${this.USER_API_URL}/${userId}`);
   }
 }

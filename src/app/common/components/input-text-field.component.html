@@ -1,6 +1,10 @@
-<mat-form-field class="w-full" [subscriptSizing]="subscriptSizing()">
+<mat-form-field
+  class="w-full"
+  [subscriptSizing]="subscriptSizing()"
+  [hidden]="hidden()"
+>
   <mat-label>{{ label() }}</mat-label>
-  <input [type]="inputType()" matInput [field]="field()" />
+  <input [type]="inputType()" matInput [formField]="field()" />
   @if (hint()) {
     <mat-hint>{{ hint() }}</mat-hint>
   }

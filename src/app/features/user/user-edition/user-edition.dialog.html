@@ -15,7 +15,7 @@
       [hint]="
         form.name().pending()
           ? 'Checking availability...'
-          : 'Between 3 and 20 characters'
+          : 'Between 3 and 30 characters'
       "
       [error]="form.name().errors()[0]?.message"
     />
@@ -34,14 +34,13 @@
       [error]="form.birthdate().errors()[0]?.message"
     />
 
-    @if (isUserUnder16()) {
-      <ngt-input-text-field
-        label="Representant"
-        [field]="form.representant"
-        hint="Required under 16"
-        [error]="form.representant().errors()[0]?.message"
-      />
-    }
+    <ngt-input-text-field
+      label="Representant"
+      [field]="form.representant"
+      [hidden]="form.representant().hidden()"
+      hint="Required under 16"
+      [error]="form.representant().errors()[0]?.message"
+    />
 
     <fieldset>
       <legend class="sr-only">Pets</legend>
@@ -101,7 +100,7 @@
   </button>
   <button
     matButton="filled"
-    [disabled]="!form().touched() || form().invalid() || form().pending()"
+    [disabled]="form().invalid() || form().pending()"
     [mat-dialog-close]="form().value()"
   >
     <mat-icon>check</mat-icon>

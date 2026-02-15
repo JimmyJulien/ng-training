@@ -1,12 +1,15 @@
 @let users = userList.value() ?? [];
 @let isLoading = userList.isLoading();
-@let error = userList.error();
 
 <mat-expansion-panel expanded disabled class="h-full">
   <mat-expansion-panel-header>
     <mat-panel-title>User list</mat-panel-title>
     <mat-panel-description class="justify-end !mr-0">
-      <button matButton="filled" (click)="createUser()">
+      <button
+        matButton="filled"
+        (click)="createUser()"
+        data-testid="create-button"
+      >
         <mat-icon>add</mat-icon>
         Create
       </button>
@@ -14,9 +17,7 @@
   </mat-expansion-panel-header>
 
   <div class="overflow-auto">
-    @if (error) {
-      <p>Error !</p>
-    } @else if (isLoading) {
+    @if (isLoading) {
       <div
         class="p-8 w-full grid items-center justify-center gap-4 text-center"
       >
@@ -56,6 +57,7 @@
                 <button
                   matIconButton
                   [matTooltip]="`Delete user ${user.name}`"
+                  [aria-label]="`Delete user ${user.name}`"
                   (click)="deleteUser(user)"
                 >
                   <mat-icon class="!text-red-500">delete</mat-icon>
@@ -65,6 +67,7 @@
                 <button
                   matIconButton
                   [matTooltip]="`Edit user ${user.name}`"
+                  [aria-label]="`Edit user ${user.name}`"
                   (click)="updateUser(user)"
                 >
                   <mat-icon class="!text-blue-800">edit</mat-icon>

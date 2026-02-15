@@ -1,17 +1,16 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   inject,
   signal,
 } from '@angular/core';
 import {
   applyEach,
   applyWhenValue,
-  customError,
   debounce,
   email,
   form,
+  hidden,
   minLength,
   required,
   validate,
@@ -23,12 +22,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { InputDateField } from '../../../common/components/input-date-field.component';
-import { InputTextField } from '../../../common/components/input-text-field.component';
-import {
-  stringBetween,
-  unique,
-} from '../../../common/validators/common.validators';
+import { InputDateField } from '@common/components/input-date-field.component';
+import { InputTextField } from '@common/components/input-text-field.component';
+import { stringBetween, unique } from '@common/validators/common.validators';
 import { UserEditionModel } from '../user.models';
 import { UserService } from '../user.service';
 import { isUnderAge } from '../user.utils';
@@ -72,7 +68,7 @@ export class UserEditionDialog {
   form = form(this.formModel, (schema) => {
     required(schema.name, { message: 'Name is required' });
     // CUSTOM VALIDATOR
-    stringBetween({ path: schema.name, min: 3, max: 20 });
+    stringBetween({ path: schema.name, min: 3, max: 30 });
     // CUSTOM ASYNC VALIDATOR
     unique({
       path: schema.name,
@@ -95,6 +91,12 @@ export class UserEditionDialog {
           message: 'Representant is required under 16',
         });
       },
+    );
+
+    // HIDDEN
+    hidden(
+      schema.representant,
+      ({ valueOf }) => !isUnderAge(valueOf(schema.birthdate), 16),
     );
 
     // FORM ARRAY
@@ -120,18 +122,14 @@ export class UserEditionDialog {
       const password = valueOf(schema.password);
 
       if (confirm.length && confirm !== password) {
-        return customError({
+        return {
           kind: 'password_mismatch',
           message: 'Passwords do not match',
-        });
+        };
       }
 
       return null;
     });
-  });
-
-  isUserUnder16 = computed(() => {
-    return isUnderAge(this.form.birthdate().value(), 16);
   });
 
   addPet() {

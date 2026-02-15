@@ -1,14 +1,14 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AppService {
   readonly #isConnected = signal<boolean>(false);
-  isConnected = computed(() => this.#isConnected());
+  isConnected = this.#isConnected.asReadonly();
 
   readonly #isUiLocked = signal<boolean>(false);
-  isUiLocked = computed(() => this.#isUiLocked());
+  isUiLocked = this.#isUiLocked.asReadonly();
 
   login() {
     this.#isConnected.set(true);

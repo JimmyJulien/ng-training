@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router, RouterModule } from '@angular/router';
-import { appRoutePaths } from '../routes/app.routes';
+import { appRoutePaths } from '@core/routes/app.routes';
 import { AppService } from '../services/app.service';
 
 @Component({
@@ -35,11 +35,6 @@ import { AppService } from '../services/app.service';
             <mat-icon>person</mat-icon>
             Logout
           </button>
-        } @else {
-          <button matButton="outlined" (click)="login()">
-            <mat-icon>person</mat-icon>
-            Login
-          </button>
         }
       </div>
     </mat-toolbar>
@@ -52,13 +47,8 @@ export class AppHeader {
 
   isConnected = this.#appService.isConnected;
 
-  login() {
-    this.#appService.login();
-    this.#router.navigate([appRoutePaths.USER]);
-  }
-
   logout() {
     this.#appService.logout();
-    this.#router.navigate(['']);
+    this.#router.navigate([appRoutePaths.LOGIN]);
   }
 }

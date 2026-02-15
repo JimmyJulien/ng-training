@@ -77,4 +77,10 @@ body {
       row-item-container-height: 2.5rem,
     )
   );
+
+  @include mat.card-overrides(
+    (
+      elevated-container-color: var(--mat-sys-primary-container),
+    )
+  );
 }
