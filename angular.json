@@ -13,7 +13,6 @@
         "@schematics/angular:component": {
           "changeDetection": "OnPush",
           "style": "none",
-          "skipTests": true,
           "flat": true
         },
         "@schematics/angular:service": {
@@ -76,7 +75,9 @@
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "runnerConfig": "vitest.config.ts"
+            "coverage": true,
+            "coverageExclude": ["testing", "routes", "plugins", "providers"],
+            "coverageReporters": ["html"]
           }
         },
         "lint": {
