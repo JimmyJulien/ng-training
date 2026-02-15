@@ -193,22 +193,6 @@ describe('UserSearchingPage', () => {
       typeConfirmPassword,
     } = await setup();
 
-    await renderApp({
-      routes: [
-        {
-          path: '',
-          component: UserSearchingPage,
-        },
-      ],
-    });
-
-    const httpTesting = TestBed.inject(HttpTestingController);
-
-    await waitFor(() => {
-      const req = httpTesting.expectOne('http://localhost:3000/users');
-      req.flush([USER, USER_UNDER_16, USER_WITH_PETS]);
-    });
-
     const newUserName = Date.now().toString();
 
     await waitForAsync(async () => {
