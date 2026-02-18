@@ -1,5 +1,5 @@
+import { Routes } from '@angular/router';
 import { App } from '@core/components/app.component';
-import { appRoutes } from '@core/routes/app.routes';
 import {
   render,
   RenderComponentOptions,
@@ -9,10 +9,15 @@ import {
 import userEvent, { Options } from '@testing-library/user-event';
 import { testingProviders } from '@testing/providers/testing.providers';
 
-export const renderApp = (options?: RenderComponentOptions<App>) => {
+type StringOrRegexp = string | RegExp;
+
+type AppRenderComponentOptions = Omit<RenderComponentOptions<App>, 'routes'> & {
+  routes: Routes;
+};
+
+export const renderApp = (options?: AppRenderComponentOptions) => {
   return render(App, {
     providers: testingProviders,
-    routes: appRoutes,
     ...options,
   });
 };
@@ -21,7 +26,7 @@ export const input = ({
   label,
   container,
 }: {
-  label: string | RegExp;
+  label: StringOrRegexp;
   container?: HTMLElement;
 }): Promise<HTMLInputElement> => {
   if (container) {
@@ -37,7 +42,7 @@ export const typeInInput = async ({
   container,
   options,
 }: {
-  label: string | RegExp;
+  label: StringOrRegexp;
   value: string;
   container?: HTMLElement;
   options?: Options;
@@ -50,7 +55,7 @@ export const button = ({
   label,
   container,
 }: {
-  label: string | RegExp;
+  label: StringOrRegexp;
   container?: HTMLElement;
 }): Promise<HTMLButtonElement> => {
   if (container) {
@@ -64,7 +69,7 @@ export const clickButton = async ({
   label,
   container,
 }: {
-  label: string | RegExp;
+  label: StringOrRegexp;
   container?: HTMLElement;
 }): Promise<void> => {
   const b = await button({ label, container });
@@ -75,7 +80,7 @@ export const title = ({
   label,
   level,
 }: {
-  label: string | RegExp;
+  label: StringOrRegexp;
   level?: 1 | 2 | 3 | 4 | 5 | 6;
 }): Promise<HTMLHeadingElement> => {
   return screen.findByRole('heading', {

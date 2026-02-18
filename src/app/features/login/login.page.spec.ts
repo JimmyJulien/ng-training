@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { appRoutePaths } from '@core/routes/app.routes';
 import {
   clickButton,
   renderApp,
@@ -8,24 +9,30 @@ import {
 import { LoginPage } from './login.page';
 
 @Component({
-  selector: 'ngt-user-page',
+  selector: 'ngt-fake-user-page',
   template: `<h1>Search users</h1>`,
 })
 class FakeUserPage {}
 
-export const setup = async () => {
+async function setup() {
   const renderResult = await renderApp({
     routes: [
-      { path: '', component: LoginPage },
-      { path: 'user', component: FakeUserPage },
+      {
+        path: '',
+        component: LoginPage,
+      },
+      {
+        path: appRoutePaths.USER,
+        component: FakeUserPage,
+      },
     ],
   });
 
-  const typeLogin = (value: string) => {
+  const typeInLogin = (value: string) => {
     return typeInInput({ label: /Login/, value });
   };
 
-  const typePassword = (value: string) => {
+  const typeInPassword = (value: string) => {
     return typeInInput({ label: /Password/, value });
   };
 
@@ -33,66 +40,59 @@ export const setup = async () => {
     return clickButton({ label: /Log in/ });
   };
 
-  const getUserPageTitle = () => {
-    return title({ label: /Search users/ });
+  const checkInvalidCredentials = async () => {
+    const invalidCredentialsAlert =
+      await renderResult.findByText(/Invalid credentials/);
+
+    expect(invalidCredentialsAlert).toBeDefined();
   };
 
-  const getInvalidCredentialsError = () => {
-    return renderResult.findByText(/Invalid credentials/);
+  const checkMainTitle = async (t: string | RegExp) => {
+    const pageTitle = await title({ label: t });
+    expect(pageTitle).toBeDefined();
   };
 
   return {
     renderResult,
-    typeLogin,
-    typePassword,
+    typeInLogin,
+    typeInPassword,
+    checkInvalidCredentials,
+    checkMainTitle,
     clickLoginButton,
-    getUserPageTitle,
-    getInvalidCredentialsError,
   };
-};
+}
 
 describe('LoginPage', () => {
   test('should log in', async () => {
-    const { typeLogin, typePassword, clickLoginButton, getUserPageTitle } =
+    const { typeInLogin, typeInPassword, clickLoginButton, checkMainTitle } =
       await setup();
 
-    await typeLogin('login');
-    await typePassword('password');
+    await typeInLogin('login');
+    await typeInPassword('password');
     await clickLoginButton();
 
-    const pageTitle = await getUserPageTitle();
-    await expect(pageTitle).toBeDefined();
+    await checkMainTitle(/Search users/);
   });
 
-  test('should show an invalid credentials error message when wrong login', async () => {
-    const {
-      typeLogin,
-      typePassword,
-      clickLoginButton,
-      getInvalidCredentialsError,
-    } = await setup();
+  test.each([
+    ['login', 'test', 'password'],
+    ['password', 'login', 'test'],
+    ['credentials', 'test', 'test'],
+  ])(
+    'should show invalid credentials alert when wrong %s',
+    async (_, login, password) => {
+      const {
+        typeInLogin,
+        typeInPassword,
+        clickLoginButton,
+        checkInvalidCredentials,
+      } = await setup();
 
-    await typeLogin('test');
-    await typePassword('password');
-    await clickLoginButton();
+      await typeInLogin(login);
+      await typeInPassword(password);
+      await clickLoginButton();
 
-    const errorMessage = await getInvalidCredentialsError();
-    await expect(errorMessage).toBeDefined();
-  });
-
-  test('should show an invalid credentials error message when wrong password', async () => {
-    const {
-      typeLogin,
-      typePassword,
-      clickLoginButton,
-      getInvalidCredentialsError,
-    } = await setup();
-
-    await typeLogin('login');
-    await typePassword('test');
-    await clickLoginButton();
-
-    const errorMessage = await getInvalidCredentialsError();
-    await expect(errorMessage).toBeDefined();
-  });
+      await checkInvalidCredentials();
+    },
+  );
 });
