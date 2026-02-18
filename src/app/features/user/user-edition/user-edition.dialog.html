@@ -101,7 +101,7 @@
   <button
     matButton="filled"
     [disabled]="form().invalid() || form().pending()"
-    [mat-dialog-close]="form().value()"
+    [mat-dialog-close]="{...form().value(), id: userToEdit?.id}"
   >
     <mat-icon>check</mat-icon>
     Submit

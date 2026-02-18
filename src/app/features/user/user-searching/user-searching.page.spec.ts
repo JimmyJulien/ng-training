@@ -1,14 +1,13 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed, waitForAsync } from '@angular/core/testing';
-import { appProviders } from '@core/providers/app.providers';
 import { screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
+
 import {
   USER,
   USER_UNDER_16,
   USER_WITH_PETS,
 } from '@testing/data/testing.data';
-import { UserTestingRepository } from '@testing/repositories/user.testing-repository';
 import {
   button,
   clickButton,
@@ -16,7 +15,7 @@ import {
   renderApp,
   typeInInput,
 } from '@testing/utils/testing.utils';
-import { UserRepository } from '../user.repository';
+import { UserModel } from '../user.models';
 import { UserSearchingPage } from './user-searching.page';
 
 const setup = async () => {
@@ -27,16 +26,35 @@ const setup = async () => {
         component: UserSearchingPage,
       },
     ],
-    providers: [
-      ...appProviders,
-      {
-        provide: UserRepository,
-        useClass: UserTestingRepository,
-      },
-    ],
   });
 
-  const user = async (name: string) => {
+  const httpTesting = TestBed.inject(HttpTestingController);
+
+  async function getUsers({
+    users,
+    error,
+  }: {
+    users?: UserModel[];
+    error?: { message: string; status: number; statusText: string };
+  }) {
+    await waitFor(() => {
+      const req = httpTesting.expectOne({
+        method: 'GET',
+        url: 'http://localhost:3000/users',
+      });
+
+      if (users) {
+        req.flush(users);
+      }
+
+      if (error) {
+        const { message, status, statusText } = error;
+        req.flush(message, { status, statusText });
+      }
+    });
+  }
+
+  const user = async (name: string | RegExp) => {
     return screen.findByText(name);
   };
 
@@ -134,8 +152,10 @@ const setup = async () => {
   };
 
   return {
+    httpTesting,
     renderResult,
     createButton,
+    getUsers,
     editionDialog,
     user,
     clickCreate,
@@ -154,35 +174,59 @@ const setup = async () => {
 
 describe('UserSearchingPage', () => {
   test('should show 3 users', async () => {
-    await renderApp({
-      routes: [
-        {
-          path: '',
-          component: UserSearchingPage,
-        },
-      ],
+    const { httpTesting, getUsers, user } = await setup();
+
+    await getUsers({ users: [USER, USER_UNDER_16, USER_WITH_PETS] });
+
+    const user1 = await user(USER.name);
+    const user2 = await user(USER_UNDER_16.name);
+    const user3 = await user(USER_WITH_PETS.name);
+
+    expect(user1).toBeDefined();
+    expect(user2).toBeDefined();
+    expect(user3).toBeDefined();
+
+    httpTesting.verify();
+  });
+
+  test('should show no result', async () => {
+    const { httpTesting, getUsers, user } = await setup();
+
+    await getUsers({ users: [] });
+
+    const noResult = await user(/No result/);
+
+    expect(noResult).toBeDefined();
+
+    httpTesting.verify();
+  });
+
+  test('should show an error alert', async () => {
+    const { httpTesting, getUsers } = await setup();
+
+    await getUsers({
+      error: { message: 'Error', status: 500, statusText: 'Server error' },
     });
 
-    const httpTesting = TestBed.inject(HttpTestingController);
+    // await waitFor(() => {
+    //   const req = httpTesting.expectOne({
+    //     method: 'GET',
+    //     url: 'http://localhost:3000/users',
+    //   });
+    //   req.flush({ status: 500, statusText: 'Server error' });
+    // });
 
-    await waitFor(() => {
-      const req = httpTesting.expectOne('http://localhost:3000/users');
-      req.flush([USER, USER_UNDER_16, USER_WITH_PETS]);
-    });
+    const alert = await screen.findByText(/Error/);
 
-    const user1 = await screen.findByText(USER.name);
-    const user2 = await screen.findByText(USER_UNDER_16.name);
-    const user3 = await screen.findByText(USER_WITH_PETS.name);
-
-    await expect.soft(user1).toBeDefined();
-    await expect.soft(user2).toBeDefined();
-    await expect.soft(user3).toBeDefined();
+    expect(alert).toBeDefined();
 
     httpTesting.verify();
   });
 
   test('should create a user', async () => {
     const {
+      httpTesting,
+      getUsers,
       user,
       clickCreate,
       clickSubmit,
@@ -193,41 +237,105 @@ describe('UserSearchingPage', () => {
       typeConfirmPassword,
     } = await setup();
 
-    const newUserName = Date.now().toString();
+    await getUsers({ users: [] });
+
+    const userToCreate: UserModel = USER;
 
     await waitForAsync(async () => {
-      const newUser = await user(newUserName);
+      const newUser = await user(userToCreate.name);
       expect(newUser).toBeUndefined();
     });
 
     await clickCreate();
 
-    await typeName(newUserName);
-    await typeEmail(`${newUserName}@mail.fr`);
-    await typeBirthdate('01/01/1991');
-    await typePassword(newUserName);
-    await typeConfirmPassword(newUserName);
+    await typeName(userToCreate.name);
+
+    await waitFor(() => {
+      const req = httpTesting.expectOne({
+        method: 'GET',
+        url: `http://localhost:3000/users?name=${userToCreate.name}`,
+      });
+      req.flush([]);
+    });
+
+    await typeEmail(userToCreate.email);
+    await typeBirthdate(userToCreate.birthdate);
+    await typePassword(userToCreate.password);
+    await typeConfirmPassword(userToCreate.password);
+
     await clickSubmit();
 
+    await waitFor(() => {
+      const req = httpTesting.expectOne({
+        method: 'POST',
+        url: 'http://localhost:3000/users',
+      });
+      req.flush(userToCreate);
+    });
+
+    await getUsers({ users: [userToCreate] });
+
     await waitForAsync(async () => {
-      const newUser = await user(newUserName);
+      const newUser = await user(userToCreate.name);
       expect(newUser).toBeDefined();
     });
+
+    httpTesting.verify();
   });
 
   test('should update a user', async () => {
-    const { clickEdit, typeName, user, submitButton } = await setup();
+    const { httpTesting, getUsers, clickEdit, typeName, user, clickSubmit } =
+      await setup();
+
+    await getUsers({ users: [USER] });
 
     await clickEdit(USER.name);
 
-    const newUserName = Date.now().toString();
+    // Note: validateur async se déclenche immédiatement
+    await waitFor(() => {
+      const req = httpTesting.expectOne({
+        method: 'GET',
+        url: `http://localhost:3000/users?name=${USER.name}`,
+      });
+      req.flush([USER]);
+    });
 
-    await typeName(newUserName);
+    const addedToUserName = 'UPDATED';
 
-    await waitForAsync(async () => {
-      const b = await submitButton();
-      expect(b.disabled).toBe(false);
-      await userEvent.click(b);
+    // Note: ajoute à l'existant donc USER -> USERUPDATED
+    await typeName(addedToUserName);
+
+    const newUserName = `${USER.name}${addedToUserName}`;
+
+    await waitFor(() => {
+      const req = httpTesting.expectOne({
+        method: 'GET',
+        url: `http://localhost:3000/users?name=${newUserName}`,
+      });
+      req.flush([]);
+    });
+
+    await clickSubmit();
+
+    const updatedUser: UserModel = {
+      ...USER,
+      name: newUserName,
+    };
+
+    await waitFor(() => {
+      const req = httpTesting.expectOne({
+        method: 'PUT',
+        url: `http://localhost:3000/users/${USER.id}`,
+      });
+      req.flush(updatedUser);
+    });
+
+    await waitFor(() => {
+      const req = httpTesting.expectOne({
+        method: 'GET',
+        url: 'http://localhost:3000/users',
+      });
+      req.flush([updatedUser]);
     });
 
     await waitForAsync(async () => {
@@ -236,10 +344,15 @@ describe('UserSearchingPage', () => {
       const updatedUser = await user(newUserName);
       expect(updatedUser).toBeDefined();
     });
+
+    httpTesting.verify();
   });
 
   test('should delete a user', async () => {
-    const { user, clickDelete, clickYes } = await setup();
+    const { httpTesting, getUsers, user, clickDelete, clickYes } =
+      await setup();
+
+    await getUsers({ users: [USER] });
 
     await waitForAsync(async () => {
       const userToDelete = await user(USER.name);
@@ -250,9 +363,27 @@ describe('UserSearchingPage', () => {
 
     await clickYes();
 
+    await waitFor(() => {
+      const req = httpTesting.expectOne({
+        method: 'DELETE',
+        url: `http://localhost:3000/users/${USER.id}`,
+      });
+      req.flush(true);
+    });
+
+    await waitFor(() => {
+      const req = httpTesting.expectOne({
+        method: 'GET',
+        url: 'http://localhost:3000/users',
+      });
+      req.flush([]);
+    });
+
     await waitForAsync(async () => {
       const deletedUser = await user(USER.name);
       expect(deletedUser).toBeUndefined();
     });
+
+    httpTesting.verify();
   });
 });

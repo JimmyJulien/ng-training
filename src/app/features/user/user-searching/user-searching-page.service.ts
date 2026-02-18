@@ -1,10 +1,18 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AppService } from '@core/services/app.service';
-import { catchError, EMPTY, filter, map, mergeMap, of, tap } from 'rxjs';
+import {
+  catchError,
+  EMPTY,
+  filter,
+  map,
+  mergeMap,
+  Observable,
+  of,
+  tap,
+} from 'rxjs';
 import { UserDeletionDialog } from '../user-deletion/user-deletion.dialog';
 import { UserEditionDialog } from '../user-edition/user-edition.dialog';
 import { UserEditionModel, UserFiltersModel, UserModel } from '../user.models';
@@ -26,15 +34,11 @@ export class UserSearchingPageService {
     stream: (resourceParams) => {
       return this.#userRepository.getUsers(resourceParams.params).pipe(
         catchError((error: unknown) => {
-          let message = 'An error occurred';
-
-          if (error instanceof HttpErrorResponse) {
-            message = error.message;
-          }
-
-          this.#snackbar.open(`Error: ${message}`, 'Close');
-
-          return of([]);
+          return this.#handleError({
+            error,
+            functionalMessage: 'Error fetching users',
+            returnedValue: of([]),
+          });
         }),
       );
     },
@@ -55,31 +59,11 @@ export class UserSearchingPageService {
   // eslint-disable-next-line no-unused-private-class-members
   #editUserAction = toSignal(
     toObservable(this.#userToEdit).pipe(
-      filter((userToEdit) => {
-        return !!userToEdit;
-      }),
-      mergeMap((userToEdit) => {
-        return this.#dialog
-          .open(UserEditionDialog, {
-            disableClose: true,
-            width: '50vw',
-            data: userToEdit,
-          })
-          .afterClosed();
-      }),
-      filter((userToEdit: UserModel | undefined) => {
-        return !!userToEdit;
-      }),
-      tap(() => {
-        this.#stateService.lockUi();
-      }),
-      mergeMap((userToEdit) => {
-        if (userToEdit.id) {
-          return this.#userRepository.updateUser(userToEdit);
-        } else {
-          return this.#userRepository.createUser(userToEdit);
-        }
-      }),
+      filter((userToEdit) => !!userToEdit),
+      mergeMap((userToEdit) => this.#openEditionDialog(userToEdit)),
+      filter((userToEdit) => !!userToEdit),
+      tap(() => this.#stateService.lockUi()),
+      mergeMap((userToEdit) => this.#editUser(userToEdit)),
       tap(() => {
         this.#stateService.unlockUi();
         this.#snackbar.open('User created !', 'Close');
@@ -88,18 +72,12 @@ export class UserSearchingPageService {
       }),
       catchError((error: unknown) => {
         this.#stateService.unlockUi();
-
-        let message = 'An error occurred';
-
-        if (error instanceof HttpErrorResponse) {
-          message = error.message;
-        }
-
-        this.#snackbar.open(`Error: ${message}`, 'Close');
-
         this.#userToEdit.set(undefined);
 
-        return EMPTY;
+        return this.#handleError({
+          error,
+          functionalMessage: 'Error editing user',
+        });
       }),
     ),
   );
@@ -116,27 +94,11 @@ export class UserSearchingPageService {
       filter(
         (userToDelete: UserModel | undefined) => userToDelete !== undefined,
       ),
-      mergeMap((userToDelete: UserModel) => {
-        return this.#dialog
-          .open(UserDeletionDialog, {
-            disableClose: true,
-          })
-          .afterClosed()
-          .pipe(
-            map((isConfirmed: boolean) => {
-              if (!isConfirmed) {
-                this.#userToDelete.set(undefined);
-                return undefined;
-              }
-
-              return userToDelete;
-            }),
-          );
-      }),
+      mergeMap((userToDelete: UserModel) =>
+        this.#openDeletionDialog(userToDelete),
+      ),
       filter((userToDelete: UserModel | undefined) => !!userToDelete),
-      tap(() => {
-        this.#stateService.lockUi();
-      }),
+      tap(() => this.#stateService.lockUi()),
       mergeMap((userToDelete: UserModel) =>
         this.#userRepository.deleteUser(userToDelete.id),
       ),
@@ -147,19 +109,65 @@ export class UserSearchingPageService {
       }),
       catchError((error: unknown) => {
         this.#stateService.unlockUi();
+        this.#userToDelete.set(undefined);
 
-        let message = 'An error occurred';
-
-        if (error instanceof HttpErrorResponse) {
-          message = error.message;
-        }
-
-        this.#snackbar.open(`Error: ${message}`, 'Close');
-
-        this.#userToEdit.set(undefined);
-
-        return EMPTY;
+        return this.#handleError({
+          error,
+          functionalMessage: 'Error deleting user',
+        });
       }),
     ),
   );
+
+  #openEditionDialog(userToEdit: UserModel): Observable<UserModel | undefined> {
+    return this.#dialog
+      .open(UserEditionDialog, {
+        disableClose: true,
+        width: '50vw',
+        data: userToEdit,
+      })
+      .afterClosed();
+  }
+
+  #openDeletionDialog(
+    userToDelete: UserModel,
+  ): Observable<UserModel | undefined> {
+    return this.#dialog
+      .open(UserDeletionDialog, {
+        disableClose: true,
+      })
+      .afterClosed()
+      .pipe(
+        map((isConfirmed: boolean) => {
+          if (!isConfirmed) {
+            this.#userToDelete.set(undefined);
+            return undefined;
+          }
+
+          return userToDelete;
+        }),
+      );
+  }
+
+  #editUser(userToEdit: UserModel) {
+    if (userToEdit.id) {
+      return this.#userRepository.updateUser(userToEdit);
+    } else {
+      return this.#userRepository.createUser(userToEdit);
+    }
+  }
+
+  #handleError<T>({
+    error,
+    functionalMessage,
+    returnedValue = EMPTY,
+  }: {
+    error: unknown;
+    functionalMessage: string;
+    returnedValue?: Observable<T>;
+  }) {
+    console.error(functionalMessage, error);
+    this.#snackbar.open(functionalMessage, 'Close');
+    return returnedValue;
+  }
 }

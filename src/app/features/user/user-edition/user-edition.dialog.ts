@@ -53,16 +53,18 @@ type UserEditionFormModel = Required<Omit<UserEditionModel, 'id' | 'pets'>> & {
 export class UserEditionDialog {
   readonly #userService = inject(UserService);
 
-  readonly #userToEdit = inject<UserEditionModel | undefined>(MAT_DIALOG_DATA);
+  protected readonly userToEdit = inject<UserEditionModel | undefined>(
+    MAT_DIALOG_DATA,
+  );
 
   formModel = signal<UserEditionFormModel>({
-    name: this.#userToEdit?.name ?? '',
-    email: this.#userToEdit?.email ?? '',
-    birthdate: this.#userToEdit?.birthdate ?? '',
-    representant: this.#userToEdit?.representant ?? '',
-    pets: this.#userToEdit?.pets?.length ? this.#userToEdit.pets : [''],
-    password: this.#userToEdit?.password ?? '',
-    confirmPassword: this.#userToEdit?.password ?? '',
+    name: this.userToEdit?.name ?? '',
+    email: this.userToEdit?.email ?? '',
+    birthdate: this.userToEdit?.birthdate ?? '',
+    representant: this.userToEdit?.representant ?? '',
+    pets: this.userToEdit?.pets?.length ? this.userToEdit.pets : [''],
+    password: this.userToEdit?.password ?? '',
+    confirmPassword: this.userToEdit?.password ?? '',
   });
 
   form = form(this.formModel, (schema) => {
