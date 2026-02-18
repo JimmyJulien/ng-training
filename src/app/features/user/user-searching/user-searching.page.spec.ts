@@ -15,7 +15,7 @@ import {
   renderApp,
   typeInInput,
 } from '@testing/utils/testing.utils';
-import { UserModel } from '../user.models';
+import { UserFiltersModel, UserModel } from '../user.models';
 import { UserSearchingPage } from './user-searching.page';
 
 const setup = async () => {
@@ -30,17 +30,28 @@ const setup = async () => {
 
   const httpTesting = TestBed.inject(HttpTestingController);
 
-  async function getUsers({
+  const USER_API_URL = 'http://localhost:3000/users';
+
+  const getUsers = async ({
+    filters,
     users,
     error,
   }: {
+    filters: UserFiltersModel;
     users?: UserModel[];
     error?: { message: string; status: number; statusText: string };
-  }) {
+  }) => {
     await waitFor(() => {
+      let url = USER_API_URL;
+
+      if (Object.keys(filters).length > 0) {
+        const searchParams = new URLSearchParams(filters);
+        url += `?${searchParams}`;
+      }
+
       const req = httpTesting.expectOne({
         method: 'GET',
-        url: 'http://localhost:3000/users',
+        url,
       });
 
       if (users) {
@@ -52,7 +63,91 @@ const setup = async () => {
         req.flush(message, { status, statusText });
       }
     });
-  }
+  };
+
+  const createUser = async ({
+    user,
+    error,
+  }: {
+    user?: UserModel;
+    error?: { message: string; status: number; statusText: string };
+  }) => {
+    await waitFor(() => {
+      const req = httpTesting.expectOne({
+        method: 'POST',
+        url: USER_API_URL,
+      });
+
+      if (user) {
+        req.flush(user);
+      }
+
+      if (error) {
+        const { message, status, statusText } = error;
+        req.flush(message, { status, statusText });
+      }
+    });
+  };
+
+  const updateUser = async ({
+    user,
+    error,
+  }: {
+    user?: UserModel;
+    error?: { message: string; status: number; statusText: string };
+  }) => {
+    await waitFor(() => {
+      let url = USER_API_URL;
+
+      if (user) {
+        url += `/${user.id}`;
+      }
+
+      const req = httpTesting.expectOne({
+        method: 'PUT',
+        url,
+      });
+
+      if (user) {
+        req.flush(user);
+      }
+
+      if (error) {
+        const { message, status, statusText } = error;
+        req.flush(message, { status, statusText });
+      }
+    });
+  };
+
+  const deleteUser = async ({
+    user,
+    error,
+  }: {
+    user?: UserModel;
+    error?: { message: string; status: number; statusText: string };
+  }) => {
+    await waitFor(() => {
+      let url = USER_API_URL;
+
+      if (user) {
+        url += `/${user.id}`;
+      }
+
+      const req = httpTesting.expectOne({
+        method: 'DELETE',
+        url,
+      });
+
+      if (user) {
+        req.flush(true);
+      }
+
+      if (error) {
+        const { message, status, statusText } = error;
+        req.flush(message, { status, statusText });
+      }
+    });
+  };
 
   const user = async (name: string | RegExp) => {
     return screen.findByText(name);
@@ -155,6 +250,7 @@ const setup = async () => {
     httpTesting,
     renderResult,
     createButton,
+    createUser,
     getUsers,
     editionDialog,
     user,
@@ -169,6 +265,8 @@ const setup = async () => {
     typeBirthdate,
     typePassword,
     typeConfirmPassword,
+    updateUser,
+    deleteUser,
   };
 };
 
@@ -176,7 +274,10 @@ describe('UserSearchingPage', () => {
   test('should show 3 users', async () => {
     const { httpTesting, getUsers, user } = await setup();
 
-    await getUsers({ users: [USER, USER_UNDER_16, USER_WITH_PETS] });
+    await getUsers({
+      filters: {},
+      users: [USER, USER_UNDER_16, USER_WITH_PETS],
+    });
 
     const user1 = await user(USER.name);
     const user2 = await user(USER_UNDER_16.name);
@@ -192,7 +293,7 @@ describe('UserSearchingPage', () => {
   test('should show no result', async () => {
     const { httpTesting, getUsers, user } = await setup();
 
-    await getUsers({ users: [] });
+    await getUsers({ filters: {}, users: [] });
 
     const noResult = await user(/No result/);
 
@@ -205,16 +306,9 @@ describe('UserSearchingPage', () => {
     const { httpTesting, getUsers } = await setup();
 
     await getUsers({
+      filters: {},
       error: { message: 'Error', status: 500, statusText: 'Server error' },
     });
-
-    // await waitFor(() => {
-    //   const req = httpTesting.expectOne({
-    //     method: 'GET',
-    //     url: 'http://localhost:3000/users',
-    //   });
-    //   req.flush({ status: 500, statusText: 'Server error' });
-    // });
 
     const alert = await screen.findByText(/Error/);
 
@@ -230,6 +324,7 @@ describe('UserSearchingPage', () => {
       user,
       clickCreate,
       clickSubmit,
+      createUser,
       typeName,
       typeEmail,
       typeBirthdate,
@@ -237,7 +332,7 @@ describe('UserSearchingPage', () => {
       typeConfirmPassword,
     } = await setup();
 
-    await getUsers({ users: [] });
+    await getUsers({ filters: {}, users: [] });
 
     const userToCreate: UserModel = USER;
 
@@ -250,12 +345,9 @@ describe('UserSearchingPage', () => {
 
     await typeName(userToCreate.name);
 
-    await waitFor(() => {
-      const req = httpTesting.expectOne({
-        method: 'GET',
-        url: `http://localhost:3000/users?name=${userToCreate.name}`,
-      });
-      req.flush([]);
+    await getUsers({
+      filters: { name: userToCreate.name },
+      users: [],
     });
 
     await typeEmail(userToCreate.email);
@@ -265,15 +357,9 @@ describe('UserSearchingPage', () => {
 
     await clickSubmit();
 
-    await waitFor(() => {
-      const req = httpTesting.expectOne({
-        method: 'POST',
-        url: 'http://localhost:3000/users',
-      });
-      req.flush(userToCreate);
-    });
+    await createUser({ user: userToCreate });
 
-    await getUsers({ users: [userToCreate] });
+    await getUsers({ filters: {}, users: [userToCreate] });
 
     await waitForAsync(async () => {
       const newUser = await user(userToCreate.name);
@@ -284,20 +370,24 @@ describe('UserSearchingPage', () => {
   });
 
   test('should update a user', async () => {
-    const { httpTesting, getUsers, clickEdit, typeName, user, clickSubmit } =
-      await setup();
+    const {
+      httpTesting,
+      getUsers,
+      clickEdit,
+      typeName,
+      user,
+      clickSubmit,
+      updateUser,
+    } = await setup();
 
-    await getUsers({ users: [USER] });
+    await getUsers({ filters: {}, users: [USER] });
 
     await clickEdit(USER.name);
 
     // Note: validateur async se déclenche immédiatement
-    await waitFor(() => {
-      const req = httpTesting.expectOne({
-        method: 'GET',
-        url: `http://localhost:3000/users?name=${USER.name}`,
-      });
-      req.flush([USER]);
+    await getUsers({
+      filters: { name: USER.name },
+      users: [USER],
     });
 
     const addedToUserName = 'UPDATED';
@@ -307,36 +397,15 @@ describe('UserSearchingPage', () => {
 
     const newUserName = `${USER.name}${addedToUserName}`;
 
-    await waitFor(() => {
-      const req = httpTesting.expectOne({
-        method: 'GET',
-        url: `http://localhost:3000/users?name=${newUserName}`,
-      });
-      req.flush([]);
-    });
+    await getUsers({ filters: { name: newUserName }, users: [] });
 
     await clickSubmit();
 
-    const updatedUser: UserModel = {
-      ...USER,
-      name: newUserName,
-    };
+    const updatedUser: UserModel = { ...USER, name: newUserName };
 
-    await waitFor(() => {
-      const req = httpTesting.expectOne({
-        method: 'PUT',
-        url: `http://localhost:3000/users/${USER.id}`,
-      });
-      req.flush(updatedUser);
-    });
+    await updateUser({ user: updatedUser });
 
-    await waitFor(() => {
-      const req = httpTesting.expectOne({
-        method: 'GET',
-        url: 'http://localhost:3000/users',
-      });
-      req.flush([updatedUser]);
-    });
+    await getUsers({ filters: {}, users: [updatedUser] });
 
     await waitForAsync(async () => {
       const oldUser = await user(USER.name);
@@ -349,10 +418,10 @@ describe('UserSearchingPage', () => {
   });
 
   test('should delete a user', async () => {
-    const { httpTesting, getUsers, user, clickDelete, clickYes } =
+    const { httpTesting, getUsers, user, clickDelete, clickYes, deleteUser } =
       await setup();
 
-    await getUsers({ users: [USER] });
+    await getUsers({ filters: {}, users: [USER] });
 
     await waitForAsync(async () => {
       const userToDelete = await user(USER.name);
@@ -363,21 +432,9 @@ describe('UserSearchingPage', () => {
 
     await clickYes();
 
-    await waitFor(() => {
-      const req = httpTesting.expectOne({
-        method: 'DELETE',
-        url: `http://localhost:3000/users/${USER.id}`,
-      });
-      req.flush(true);
-    });
+    await deleteUser({ user: USER });
 
-    await waitFor(() => {
-      const req = httpTesting.expectOne({
-        method: 'GET',
-        url: 'http://localhost:3000/users',
-      });
-      req.flush([]);
-    });
+    await getUsers({ filters: {}, users: [] });
 
     await waitForAsync(async () => {
       const deletedUser = await user(USER.name);
