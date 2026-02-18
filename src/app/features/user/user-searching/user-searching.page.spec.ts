@@ -3,6 +3,7 @@ import { TestBed, waitForAsync } from '@angular/core/testing';
 import { screen, waitFor } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 
+import { USER_API_URL } from '@testing/constants/testing.constants';
 import {
   USER,
   USER_UNDER_16,
@@ -29,8 +30,6 @@ const setup = async () => {
   });
 
   const httpTesting = TestBed.inject(HttpTestingController);
-
-  const USER_API_URL = 'http://localhost:3000/users';
 
   const getUsers = async ({
     filters,

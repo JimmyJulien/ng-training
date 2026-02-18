@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { USER_API_URL } from '@common/constants/api.constants';
 import { Observable } from 'rxjs';
 import { UserFiltersModel, UserModel } from './user.models';
 
@@ -7,25 +8,23 @@ import { UserFiltersModel, UserModel } from './user.models';
   providedIn: 'root',
 })
 export class UserRepository {
-  readonly USER_API_URL = 'http://localhost:3000/users';
-
   readonly #http = inject(HttpClient);
 
   getUsers(filters: UserFiltersModel): Observable<UserModel[]> {
-    return this.#http.get<UserModel[]>(this.USER_API_URL, {
+    return this.#http.get<UserModel[]>(USER_API_URL, {
       params: filters,
     });
   }
 
   createUser(user: UserModel): Observable<UserModel> {
-    return this.#http.post<UserModel>(this.USER_API_URL, user);
+    return this.#http.post<UserModel>(USER_API_URL, user);
   }
 
   updateUser(user: UserModel): Observable<UserModel> {
-    return this.#http.put<UserModel>(`${this.USER_API_URL}/${user.id}`, user);
+    return this.#http.put<UserModel>(`${USER_API_URL}/${user.id}`, user);
   }
 
   deleteUser(userId: UserModel['id']): Observable<boolean> {
-    return this.#http.delete<boolean>(`${this.USER_API_URL}/${userId}`);
+    return this.#http.delete<boolean>(`${USER_API_URL}/${userId}`);
   }
 }
