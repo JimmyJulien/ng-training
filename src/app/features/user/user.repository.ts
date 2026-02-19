@@ -16,15 +16,18 @@ export class UserRepository {
     });
   }
 
-  createUser(user: UserModel): Observable<UserModel> {
-    return this.#http.post<UserModel>(USER_API_URL, user);
+  createUser(userToCreate: UserModel): Observable<UserModel> {
+    return this.#http.post<UserModel>(USER_API_URL, userToCreate);
   }
 
-  updateUser(user: UserModel): Observable<UserModel> {
-    return this.#http.put<UserModel>(`${USER_API_URL}/${user.id}`, user);
+  updateUser(userToUpdate: UserModel): Observable<UserModel> {
+    return this.#http.put<UserModel>(
+      `${USER_API_URL}/${userToUpdate.id}`,
+      userToUpdate,
+    );
   }
 
-  deleteUser(userId: UserModel['id']): Observable<boolean> {
-    return this.#http.delete<boolean>(`${USER_API_URL}/${userId}`);
+  deleteUser(userIdToDelete: UserModel['id']): Observable<boolean> {
+    return this.#http.delete<boolean>(`${USER_API_URL}/${userIdToDelete}`);
   }
 }

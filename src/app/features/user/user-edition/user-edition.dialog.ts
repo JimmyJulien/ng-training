@@ -17,7 +17,11 @@ import {
 } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import {
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -56,6 +60,8 @@ export class UserEditionDialog {
   protected readonly userToEdit = inject<UserEditionModel | undefined>(
     MAT_DIALOG_DATA,
   );
+
+  readonly #dialogRef = inject(MatDialogRef);
 
   formModel = signal<UserEditionFormModel>({
     name: this.userToEdit?.name ?? '',
@@ -150,5 +156,25 @@ export class UserEditionDialog {
         pets: f.pets.filter((_, i) => i !== index),
       };
     });
+  }
+
+  onSubmit() {
+    const { name, email, birthdate, pets, representant, password } =
+      this.form().value();
+
+    const userToEdit: UserEditionModel = {
+      id: this.userToEdit?.id,
+      name,
+      email,
+      birthdate: new Date(birthdate).toLocaleDateString(),
+      pets: pets.filter((p) => !!p),
+      password,
+    };
+
+    if (representant) {
+      userToEdit.representant = representant;
+    }
+
+    this.#dialogRef.close(userToEdit);
   }
 }

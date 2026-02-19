@@ -13,7 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { InputDateField } from '@common/components/input-date-field.component';
 import { InputTextField } from '@common/components/input-text-field.component';
-import { UserEditionModel } from '../user.models';
+import { UserFiltersModel } from '../user.models';
 import { UserSearchingPageService } from './user-searching-page.service';
 
 @Component({
@@ -34,17 +34,23 @@ import { UserSearchingPageService } from './user-searching-page.service';
 export class UserSearchingPageFiltersComponent {
   readonly #userSearchingPageService = inject(UserSearchingPageService);
 
-  formModel = signal<UserEditionModel>({
+  formModel = signal<Required<UserFiltersModel>>({
     name: '',
     email: '',
-    birthdate: '',
-    pets: [],
-    password: '',
+    birthdate: '', // Note: Date mais KO FieldTree
   });
 
   form = form(this.formModel);
 
   onSubmit() {
-    this.#userSearchingPageService.filterUserList(this.form().value());
+    const { name, email, birthdate } = this.form().value();
+
+    const filters: UserFiltersModel = {
+      name,
+      email,
+      birthdate: new Date(birthdate).toLocaleDateString(),
+    };
+
+    this.#userSearchingPageService.filterUserList(filters);
   }
 }

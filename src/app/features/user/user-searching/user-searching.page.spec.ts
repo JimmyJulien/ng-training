@@ -10,9 +10,13 @@ import {
   USER_WITH_PETS,
 } from '@testing/data/testing.data';
 import {
-  button,
   clickButton,
   dialog,
+  form,
+  httpDelete,
+  httpGet,
+  httpPost,
+  httpPut,
   renderApp,
   typeInInput,
 } from '@testing/utils/testing.utils';
@@ -20,7 +24,7 @@ import { UserFiltersModel, UserModel } from '../user.models';
 import { UserSearchingPage } from './user-searching.page';
 
 const setup = async () => {
-  const renderResult = await renderApp({
+  await renderApp({
     routes: [
       {
         path: '',
@@ -41,110 +45,72 @@ const setup = async () => {
     error?: { message: string; status: number; statusText: string };
   }) => {
     await waitFor(() => {
-      let url = USER_API_URL;
-
-      if (Object.keys(filters).length > 0) {
-        const searchParams = new URLSearchParams(filters);
-        url += `?${searchParams}`;
-      }
-
-      const req = httpTesting.expectOne({
-        method: 'GET',
-        url,
+      httpGet({
+        httpTesting,
+        apiUrl: USER_API_URL,
+        params: filters,
+        successData: users,
+        errorData: error,
       });
-
-      if (users) {
-        req.flush(users);
-      }
-
-      if (error) {
-        const { message, status, statusText } = error;
-        req.flush(message, { status, statusText });
-      }
     });
   };
 
   const createUser = async ({
-    user,
+    userToCreate,
+    userCreated,
     error,
   }: {
-    user?: UserModel;
+    userToCreate: UserModel;
+    userCreated?: UserModel;
     error?: { message: string; status: number; statusText: string };
   }) => {
     await waitFor(() => {
-      const req = httpTesting.expectOne({
-        method: 'POST',
-        url: USER_API_URL,
+      httpPost({
+        httpTesting,
+        apiUrl: USER_API_URL,
+        body: userToCreate,
+        successData: userCreated,
+        errorData: error,
       });
-
-      if (user) {
-        req.flush(user);
-      }
-
-      if (error) {
-        const { message, status, statusText } = error;
-        req.flush(message, { status, statusText });
-      }
     });
   };
 
   const updateUser = async ({
-    user,
+    userToUpdate,
+    updatedUser,
     error,
   }: {
-    user?: UserModel;
+    userToUpdate: UserModel;
+    updatedUser?: UserModel;
     error?: { message: string; status: number; statusText: string };
   }) => {
     await waitFor(() => {
-      let url = USER_API_URL;
-
-      if (user) {
-        url += `/${user.id}`;
-      }
-
-      const req = httpTesting.expectOne({
-        method: 'PUT',
-        url,
+      httpPut({
+        httpTesting,
+        apiUrl: `${USER_API_URL}/${userToUpdate.id}`,
+        body: userToUpdate,
+        successData: updatedUser,
+        errorData: error,
       });
-
-      if (user) {
-        req.flush(user);
-      }
-
-      if (error) {
-        const { message, status, statusText } = error;
-        req.flush(message, { status, statusText });
-      }
     });
   };
 
   const deleteUser = async ({
-    user,
+    userIdToDelete,
+    deletionResult,
     error,
   }: {
-    user?: UserModel;
+    userIdToDelete: UserModel['id'];
+    deletionResult?: boolean;
     error?: { message: string; status: number; statusText: string };
   }) => {
     await waitFor(() => {
-      let url = USER_API_URL;
-
-      if (user) {
-        url += `/${user.id}`;
-      }
-
-      const req = httpTesting.expectOne({
-        method: 'DELETE',
-        url,
+      httpDelete({
+        httpTesting,
+        apiUrl: `${USER_API_URL}/${userIdToDelete}`,
+        successData: deletionResult,
+        errorData: error,
       });
-
-      if (user) {
-        req.flush(true);
-      }
-
-      if (error) {
-        const { message, status, statusText } = error;
-        req.flush(message, { status, statusText });
-      }
     });
   };
 
@@ -173,24 +139,56 @@ const setup = async () => {
     });
   };
 
-  const editionDialog = () => {
-    return dialog();
+  const typeFilterName = async (value: string) => {
+    const f = await form();
+
+    return typeInInput({
+      label: /Name/,
+      value,
+      container: f,
+    });
   };
 
-  const typeName = async (value: string) => {
+  const typeFilterEmail = async (value: string) => {
+    const f = await form();
+
+    return typeInInput({
+      label: /Email/,
+      value,
+      container: f,
+    });
+  };
+
+  const typeFilterBirthdate = async (value: string) => {
+    const f = await form();
+
+    return typeInInput({
+      label: /Birth Date/,
+      value,
+      container: f,
+    });
+  };
+
+  const clickFilter = async () => {
+    const f = await form();
+
+    return clickButton({
+      label: /Filter/,
+      container: f,
+    });
+  };
+
+  const typeEditionName = async (value: string) => {
     const d = await dialog();
 
     return typeInInput({
       label: /Name/,
       value,
       container: d,
-      options: {
-        delay: 50,
-      },
     });
   };
 
-  const typeEmail = async (value: string) => {
+  const typeEditionEmail = async (value: string) => {
     const d = await dialog();
 
     return typeInInput({
@@ -200,7 +198,7 @@ const setup = async () => {
     });
   };
 
-  const typeBirthdate = async (value: string) => {
+  const typeEditionBirthdate = async (value: string) => {
     const d = await dialog();
 
     return typeInInput({
@@ -210,7 +208,7 @@ const setup = async () => {
     });
   };
 
-  const typePassword = async (value: string) => {
+  const typeEditionPassword = async (value: string) => {
     const d = await dialog();
 
     return typeInInput({
@@ -220,98 +218,147 @@ const setup = async () => {
     });
   };
 
-  const typeConfirmPassword = async (value: string) => {
+  const typeEditionConfirmPassword = async (value: string) => {
     const d = await dialog();
 
     return typeInInput({
-      label: /Confirm Password/,
+      label: /Confirm password/,
       value,
       container: d,
     });
   };
 
-  const submitButton = async () => {
-    const d = await dialog();
-    return button({ label: /Submit/, container: d });
-  };
-
-  const clickSubmit = async () => {
+  const submitEdition = async () => {
     const d = await dialog();
     return clickButton({ label: /Submit/, container: d });
   };
 
-  const clickYes = async () => {
+  const confirmDeletion = async () => {
     const d = await dialog();
     return clickButton({ label: /Yes/, container: d });
   };
 
+  const checkUser = async (name: string | RegExp) => {
+    const u = await user(name);
+    expect(u).toBeDefined();
+  };
+
+  const checkNoUser = async (name: string | RegExp) => {
+    await waitForAsync(async () => {
+      const u = await user(name);
+      expect(u).toBeUndefined();
+    });
+  };
+
+  const checkNoResult = async () => {
+    const u = await user(/No result/);
+    expect(u).toBeDefined();
+  };
+
+  const checkAlert = async () => {
+    const alert = await screen.findByText(/Error/);
+    expect(alert).toBeDefined();
+  };
+
   return {
     httpTesting,
-    renderResult,
     createButton,
     createUser,
     getUsers,
-    editionDialog,
-    user,
     clickCreate,
     clickDelete,
     clickEdit,
-    clickSubmit,
-    clickYes,
-    submitButton,
-    typeName,
-    typeEmail,
-    typeBirthdate,
-    typePassword,
-    typeConfirmPassword,
+    submitEdition,
+    confirmDeletion,
+    typeEditionName,
+    typeEditionEmail,
+    typeEditionBirthdate,
+    typeEditionPassword,
+    typeEditionConfirmPassword,
     updateUser,
     deleteUser,
+    checkAlert,
+    checkNoResult,
+    checkUser,
+    checkNoUser,
+    clickFilter,
+    typeFilterBirthdate,
+    typeFilterEmail,
+    typeFilterName,
   };
 };
 
 describe('UserSearchingPage', () => {
   test('should show 3 users', async () => {
-    const { httpTesting, getUsers, user } = await setup();
+    const { httpTesting, getUsers, checkUser } = await setup();
 
     await getUsers({
       filters: {},
       users: [USER, USER_UNDER_16, USER_WITH_PETS],
     });
 
-    const user1 = await user(USER.name);
-    const user2 = await user(USER_UNDER_16.name);
-    const user3 = await user(USER_WITH_PETS.name);
-
-    expect(user1).toBeDefined();
-    expect(user2).toBeDefined();
-    expect(user3).toBeDefined();
+    await checkUser(USER.name);
+    await checkUser(USER_UNDER_16.name);
+    await checkUser(USER_WITH_PETS.name);
 
     httpTesting.verify();
   });
 
   test('should show no result', async () => {
-    const { httpTesting, getUsers, user } = await setup();
+    const { httpTesting, getUsers, checkNoResult } = await setup();
 
     await getUsers({ filters: {}, users: [] });
 
-    const noResult = await user(/No result/);
-
-    expect(noResult).toBeDefined();
+    await checkNoResult();
 
     httpTesting.verify();
   });
 
   test('should show an error alert', async () => {
-    const { httpTesting, getUsers } = await setup();
+    const { httpTesting, getUsers, checkAlert } = await setup();
 
     await getUsers({
       filters: {},
       error: { message: 'Error', status: 500, statusText: 'Server error' },
     });
 
-    const alert = await screen.findByText(/Error/);
+    await checkAlert();
 
-    expect(alert).toBeDefined();
+    httpTesting.verify();
+  });
+
+  test('should filter users', async () => {
+    const {
+      httpTesting,
+      getUsers,
+      checkUser,
+      typeFilterName,
+      typeFilterEmail,
+      typeFilterBirthdate,
+      clickFilter,
+    } = await setup();
+
+    await getUsers({
+      filters: {},
+      users: [USER, USER_UNDER_16, USER_WITH_PETS],
+    });
+
+    await typeFilterName(USER.name);
+    await typeFilterEmail(USER.email);
+    await typeFilterBirthdate(USER.birthdate);
+
+    await clickFilter();
+
+    await getUsers({
+      filters: {
+        name: USER.name,
+        email: USER.email,
+        birthdate: USER.birthdate,
+      },
+      users: [USER],
+    });
+
+    await checkUser(USER.name);
 
     httpTesting.verify();
   });
@@ -320,50 +367,44 @@ describe('UserSearchingPage', () => {
     const {
       httpTesting,
       getUsers,
-      user,
       clickCreate,
-      clickSubmit,
       createUser,
-      typeName,
-      typeEmail,
-      typeBirthdate,
-      typePassword,
-      typeConfirmPassword,
+      typeEditionName,
+      typeEditionEmail,
+      typeEditionBirthdate,
+      typeEditionPassword,
+      typeEditionConfirmPassword,
+      submitEdition,
+      checkUser,
     } = await setup();
 
-    await getUsers({ filters: {}, users: [] });
+    const initialUsers: UserModel[] = [];
 
-    const userToCreate: UserModel = USER;
+    await getUsers({ filters: {}, users: initialUsers });
 
-    await waitForAsync(async () => {
-      const newUser = await user(userToCreate.name);
-      expect(newUser).toBeUndefined();
-    });
+    const userToCreate: UserModel = { ...USER, id: '' };
 
     await clickCreate();
 
-    await typeName(userToCreate.name);
+    await typeEditionName(userToCreate.name);
 
     await getUsers({
       filters: { name: userToCreate.name },
       users: [],
     });
 
-    await typeEmail(userToCreate.email);
-    await typeBirthdate(userToCreate.birthdate);
-    await typePassword(userToCreate.password);
-    await typeConfirmPassword(userToCreate.password);
+    await typeEditionEmail(userToCreate.email);
+    await typeEditionBirthdate(userToCreate.birthdate);
+    await typeEditionPassword(userToCreate.password);
+    await typeEditionConfirmPassword(userToCreate.password);
 
-    await clickSubmit();
+    await submitEdition();
 
-    await createUser({ user: userToCreate });
+    await createUser({ userToCreate, userCreated: USER });
 
-    await getUsers({ filters: {}, users: [userToCreate] });
+    await getUsers({ filters: {}, users: [...initialUsers, USER] });
 
-    await waitForAsync(async () => {
-      const newUser = await user(userToCreate.name);
-      expect(newUser).toBeDefined();
-    });
+    await checkUser(USER.name);
 
     httpTesting.verify();
   });
@@ -373,72 +414,71 @@ describe('UserSearchingPage', () => {
       httpTesting,
       getUsers,
       clickEdit,
-      typeName,
-      user,
-      clickSubmit,
+      typeEditionName,
+      submitEdition,
       updateUser,
+      checkUser,
     } = await setup();
 
-    await getUsers({ filters: {}, users: [USER] });
+    const initialUsers: UserModel[] = [USER];
 
-    await clickEdit(USER.name);
+    await getUsers({ filters: {}, users: initialUsers });
+
+    const userToUpdate: UserModel = initialUsers[0];
+
+    await clickEdit(userToUpdate.name);
 
     // Note: validateur async se déclenche immédiatement
     await getUsers({
-      filters: { name: USER.name },
-      users: [USER],
+      filters: { name: userToUpdate.name },
+      users: [userToUpdate],
     });
 
     const addedToUserName = 'UPDATED';
 
     // Note: ajoute à l'existant donc USER -> USERUPDATED
-    await typeName(addedToUserName);
+    await typeEditionName(addedToUserName);
 
-    const newUserName = `${USER.name}${addedToUserName}`;
+    userToUpdate.name = `${userToUpdate.name}${addedToUserName}`;
 
-    await getUsers({ filters: { name: newUserName }, users: [] });
+    await getUsers({ filters: { name: userToUpdate.name }, users: [] });
 
-    await clickSubmit();
+    await submitEdition();
 
-    const updatedUser: UserModel = { ...USER, name: newUserName };
+    await updateUser({ userToUpdate, updatedUser: userToUpdate });
 
-    await updateUser({ user: updatedUser });
+    await getUsers({ filters: {}, users: [userToUpdate] });
 
-    await getUsers({ filters: {}, users: [updatedUser] });
-
-    await waitForAsync(async () => {
-      const oldUser = await user(USER.name);
-      expect(oldUser).toBeUndefined();
-      const updatedUser = await user(newUserName);
-      expect(updatedUser).toBeDefined();
-    });
+    await checkUser(userToUpdate.name);
 
     httpTesting.verify();
   });
 
   test('should delete a user', async () => {
-    const { httpTesting, getUsers, user, clickDelete, clickYes, deleteUser } =
-      await setup();
+    const {
+      httpTesting,
+      getUsers,
+      clickDelete,
+      confirmDeletion,
+      deleteUser,
+      checkNoUser,
+    } = await setup();
 
-    await getUsers({ filters: {}, users: [USER] });
+    const initialUsers: UserModel[] = [USER];
 
-    await waitForAsync(async () => {
-      const userToDelete = await user(USER.name);
-      expect(userToDelete).toBeDefined();
-    });
+    await getUsers({ filters: {}, users: initialUsers });
 
-    await clickDelete(USER.name);
+    const userToDelete: UserModel = initialUsers[0];
 
-    await clickYes();
+    await clickDelete(userToDelete.name);
 
-    await deleteUser({ user: USER });
+    await confirmDeletion();
+
+    await deleteUser({ userIdToDelete: userToDelete.id, deletionResult: true });
 
     await getUsers({ filters: {}, users: [] });
 
-    await waitForAsync(async () => {
-      const deletedUser = await user(USER.name);
-      expect(deletedUser).toBeUndefined();
-    });
+    await checkNoUser(USER.name);
 
     httpTesting.verify();
   });

@@ -21,7 +21,7 @@
     />
 
     <ngt-input-text-field
-      label="Email Address"
+      label="Email"
       [field]="form.email"
       hint="Ex: jimmy.julien@mail.fr"
       [error]="form.email().errors()[0]?.message"
@@ -84,7 +84,7 @@
     />
 
     <ngt-input-text-field
-      label="Confirm Password"
+      label="Confirm password"
       [field]="form.confirmPassword"
       inputType="password"
       hint="Same password as above"
@@ -101,7 +101,7 @@
   <button
     matButton="filled"
     [disabled]="form().invalid() || form().pending()"
-    [mat-dialog-close]="{...form().value(), id: userToEdit?.id}"
+    (click)="onSubmit()"
   >
     <mat-icon>check</mat-icon>
     Submit
