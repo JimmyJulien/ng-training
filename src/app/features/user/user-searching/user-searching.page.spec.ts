@@ -1,6 +1,6 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed, waitForAsync } from '@angular/core/testing';
-import { screen, waitFor } from '@testing-library/angular';
+import { screen, waitFor, within } from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 
 import { USER_API_URL } from '@testing/constants/testing.constants';
@@ -238,6 +238,39 @@ const setup = async () => {
     });
   };
 
+  const typeEditionPet = async ({
+    index,
+    value,
+  }: {
+    index: number;
+    value: string;
+  }) => {
+    const d = await dialog();
+    return typeInInput({
+      label: `Pet ${index + 1}`,
+      value,
+      container: d,
+    });
+  };
+
+  const addEditionPet = async () => {
+    const d = await dialog();
+    const buttons = await within(d).findAllByRole('button', {
+      name: /Add a pet/,
+    });
+    const lastButton = buttons[buttons.length - 1];
+    return userEvent.click(lastButton);
+  };
+
+  const removeEditionPet = async () => {
+    const d = await dialog();
+    const buttons = await within(d).findAllByRole('button', {
+      name: /Remove a pet/,
+    });
+    const lastButton = buttons[buttons.length - 1];
+    return userEvent.click(lastButton);
+  };
+
   const submitEdition = async () => {
     const d = await dialog();
     return clickButton({ label: /Submit/, container: d });
@@ -286,6 +319,7 @@ const setup = async () => {
     typeEditionRepresentant,
     typeEditionPassword,
     typeEditionConfirmPassword,
+    typeEditionPet,
     updateUser,
     deleteUser,
     checkAlert,
@@ -296,6 +330,8 @@ const setup = async () => {
     typeFilterBirthdate,
     typeFilterEmail,
     typeFilterName,
+    addEditionPet,
+    removeEditionPet,
   };
 };
 
@@ -538,6 +574,68 @@ describe('UserSearchingPage', () => {
     await getUsers({ filters: {}, users: [...initialUsers, USER_UNDER_16] });
 
     await checkUser(USER_UNDER_16.name);
+
+    httpTesting.verify();
+  });
+
+  test('should create a user with a pet', async () => {
+    const {
+      httpTesting,
+      getUsers,
+      clickCreate,
+      createUser,
+      typeEditionName,
+      typeEditionEmail,
+      typeEditionBirthdate,
+      typeEditionPassword,
+      typeEditionConfirmPassword,
+      typeEditionPet,
+      submitEdition,
+      checkUser,
+      addEditionPet,
+    } = await setup();
+
+    const initialUsers: UserModel[] = [];
+
+    await getUsers({ filters: {}, users: initialUsers });
+
+    const userToCreate: UserModel = { ...USER_WITH_PETS, id: '' };
+
+    await clickCreate();
+
+    await typeEditionName(userToCreate.name);
+
+    await getUsers({
+      filters: { name: userToCreate.name },
+      users: [],
+    });
+
+    await typeEditionEmail(userToCreate.email);
+    await typeEditionBirthdate(userToCreate.birthdate);
+    await typeEditionPassword(userToCreate.password);
+    await typeEditionConfirmPassword(userToCreate.password);
+    await typeEditionPet({
+      index: 0,
+      value: userToCreate.pets[0],
+    });
+    await addEditionPet();
+    await typeEditionPet({
+      index: 1,
+      value: userToCreate.pets[1],
+    });
+    await addEditionPet();
+    await typeEditionPet({
+      index: 2,
+      value: userToCreate.pets[2],
+    });
+
+    await submitEdition();
+
+    await createUser({ userToCreate, userCreated: USER_WITH_PETS });
+
+    await getUsers({ filters: {}, users: [...initialUsers, USER_WITH_PETS] });
+
+    await checkUser(USER_WITH_PETS.name);
 
     httpTesting.verify();
   });
