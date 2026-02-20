@@ -21,7 +21,6 @@ export class InputTextField {
   label = input.required<string>();
   field = input.required<FieldTree<string, string | number>>();
   inputType = input<'text' | 'password'>('text');
-  hidden = input<boolean>(false);
   hint = input<string>();
   error = input<string>();
   noMarginBottom = input<boolean>(true);

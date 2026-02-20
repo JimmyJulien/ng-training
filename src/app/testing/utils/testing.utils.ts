@@ -1,6 +1,7 @@
-import { HttpRequest } from '@angular/common/http';
+import { HttpParams, HttpRequest } from '@angular/common/http';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Routes } from '@angular/router';
+import { deepEqual } from '@common/utils/compare.utils';
 import { App } from '@core/components/app.component';
 import {
   render,
@@ -105,7 +106,115 @@ export const form = () => {
   return screen.findByRole('form');
 };
 
-export const httpGet = <Params extends object, SuccessData>({
+const logHttpAttributeDiff = ({
+  functionName,
+  attribute,
+  expected,
+  received,
+}: {
+  functionName: string;
+  attribute: 'method' | 'url' | 'params' | 'body';
+  expected: unknown;
+  received: unknown;
+}) => {
+  console.log(`${functionName} wrong ${attribute}`);
+  console.log('expected:');
+  console.log(expected);
+  console.log('received:');
+  console.log(received);
+};
+
+const checkHttpMethod = ({
+  functionName,
+  expected,
+  received,
+}: {
+  functionName: string;
+  expected: string;
+  received: string;
+}) => {
+  if (expected !== received) {
+    logHttpAttributeDiff({
+      functionName,
+      attribute: 'method',
+      expected,
+      received,
+    });
+    return false;
+  }
+  return true;
+};
+
+const checkHttpParams = ({
+  functionName,
+  expected,
+  received,
+}: {
+  functionName: string;
+  expected: Record<string, unknown>;
+  received: HttpParams;
+}) => {
+  const convertedReceived = {} as Record<string, unknown>;
+
+  received.keys().forEach((key) => {
+    convertedReceived[key] = received.get(key);
+  });
+
+  if (!deepEqual(expected, convertedReceived)) {
+    logHttpAttributeDiff({
+      functionName,
+      attribute: 'params',
+      expected,
+      received,
+    });
+    return false;
+  }
+  return true;
+};
+
+const checkHttpUrl = ({
+  functionName,
+  expected,
+  received,
+}: {
+  functionName: string;
+  expected: string;
+  received: string;
+}) => {
+  if (expected !== received) {
+    logHttpAttributeDiff({
+      functionName,
+      attribute: 'url',
+      expected,
+      received,
+    });
+    return false;
+  }
+  return true;
+};
+
+const checkHttpBody = ({
+  functionName,
+  expected,
+  received,
+}: {
+  functionName: string;
+  expected: unknown;
+  received: unknown;
+}) => {
+  if (!deepEqual(expected, received)) {
+    logHttpAttributeDiff({
+      functionName,
+      attribute: 'body',
+      expected,
+      received,
+    });
+    return false;
+  }
+  return true;
+};
+
+export const httpGet = ({
   httpTesting,
   apiUrl,
   params,
@@ -114,26 +223,81 @@ export const httpGet = <Params extends object, SuccessData>({
 }: {
   httpTesting: HttpTestingController;
   apiUrl: string;
-  params: Params;
-  successData?: SuccessData;
+  params: Record<string, unknown>;
+  successData?: unknown;
   errorData?: HttpErrorData;
 }) => {
-  const req = httpTesting.expectOne((request: HttpRequest<Params>) => {
-    if (request.method !== 'GET') {
-      return false;
-    }
+  const req = httpTesting.expectOne(
+    (request: HttpRequest<Record<string, unknown>>) => {
+      const functionName = httpGet.name;
 
-    if (request.url !== apiUrl) {
-      return false;
-    }
+      const methodIsOk = checkHttpMethod({
+        functionName,
+        expected: 'GET',
+        received: request.method,
+      });
 
-    for (const [key, value] of Object.entries(params)) {
-      if (request.params.get(key) !== value) {
-        return false;
-      }
-    }
+      const urlIsOk = checkHttpUrl({
+        functionName,
+        expected: apiUrl,
+        received: request.url,
+      });
 
-    return true;
+      const paramsAreOk = checkHttpParams({
+        functionName,
+        expected: params,
+        received: request.params,
+      });
+
+      return methodIsOk && urlIsOk && paramsAreOk;
+    },
+  );
+
+  if (successData) {
+    req.flush(successData);
+  }
+
+  if (errorData) {
+    const { message, status, statusText } = errorData;
+    req.flush(message, { status, statusText });
+  }
+};
+
+export const httpPost = ({
+  httpTesting,
+  apiUrl,
+  body,
+  successData,
+  errorData,
+}: {
+  httpTesting: HttpTestingController;
+  apiUrl: string;
+  body: unknown;
+  successData?: unknown;
+  errorData?: HttpErrorData;
+}) => {
+  const req = httpTesting.expectOne((request) => {
+    const functionName = httpPost.name;
+
+    const methodIsOk = checkHttpMethod({
+      functionName,
+      expected: 'POST',
+      received: request.method,
+    });
+
+    const urlIsOk = checkHttpUrl({
+      functionName,
+      expected: apiUrl,
+      received: request.url,
+    });
+
+    const bodyIsOk = checkHttpBody({
+      functionName,
+      expected: body,
+      received: request.body,
+    });
+
+    return methodIsOk && urlIsOk && bodyIsOk;
   });
 
   if (successData) {
@@ -146,7 +310,7 @@ export const httpGet = <Params extends object, SuccessData>({
   }
 };
 
-export const httpPost = <Body, SuccessData>({
+export const httpPut = ({
   httpTesting,
   apiUrl,
   body,
@@ -155,63 +319,32 @@ export const httpPost = <Body, SuccessData>({
 }: {
   httpTesting: HttpTestingController;
   apiUrl: string;
-  body: Body;
-  successData?: SuccessData;
+  body: unknown;
+  successData?: unknown;
   errorData?: HttpErrorData;
 }) => {
   const req = httpTesting.expectOne((request) => {
-    if (request.method !== 'POST') {
-      return false;
-    }
+    const functionName = httpPut.name;
 
-    if (request.url !== apiUrl) {
-      return false;
-    }
+    const methodIsOk = checkHttpMethod({
+      functionName,
+      expected: 'PUT',
+      received: request.method,
+    });
 
-    if (request.body && JSON.stringify(request.body) !== JSON.stringify(body)) {
-      return false;
-    }
+    const urlIsOk = checkHttpUrl({
+      functionName,
+      expected: apiUrl,
+      received: request.url,
+    });
 
-    return true;
-  });
+    const bodyIsOk = checkHttpBody({
+      functionName,
+      expected: body,
+      received: request.body,
+    });
 
-  if (successData) {
-    req.flush(successData);
-  }
-
-  if (errorData) {
-    const { message, status, statusText } = errorData;
-    req.flush(message, { status, statusText });
-  }
-};
-
-export const httpPut = <Body, SuccessData>({
-  httpTesting,
-  apiUrl,
-  body,
-  successData,
-  errorData,
-}: {
-  httpTesting: HttpTestingController;
-  apiUrl: string;
-  body: Body;
-  successData?: SuccessData;
-  errorData?: HttpErrorData;
-}) => {
-  const req = httpTesting.expectOne((request) => {
-    if (request.method !== 'PUT') {
-      return false;
-    }
-
-    if (request.url !== apiUrl) {
-      return false;
-    }
-
-    if (request.body && JSON.stringify(request.body) !== JSON.stringify(body)) {
-      return false;
-    }
-
-    return true;
+    return methodIsOk && urlIsOk && bodyIsOk;
   });
 
   if (successData) {
@@ -236,15 +369,21 @@ export const httpDelete = ({
   errorData?: HttpErrorData;
 }) => {
   const req = httpTesting.expectOne((request) => {
-    if (request.method !== 'DELETE') {
-      return false;
-    }
+    const functionName = httpDelete.name;
 
-    if (request.url !== apiUrl) {
-      return false;
-    }
+    const methodIsOk = checkHttpMethod({
+      functionName,
+      expected: 'DELETE',
+      received: request.method,
+    });
 
-    return true;
+    const urlIsOk = checkHttpUrl({
+      functionName,
+      expected: apiUrl,
+      received: request.url,
+    });
+
+    return methodIsOk && urlIsOk;
   });
 
   if (successData !== undefined) {

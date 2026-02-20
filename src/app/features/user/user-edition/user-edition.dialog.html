@@ -34,13 +34,14 @@
       [error]="form.birthdate().errors()[0]?.message"
     />
 
-    <ngt-input-text-field
-      label="Representant"
-      [field]="form.representant"
-      [hidden]="form.representant().hidden()"
-      hint="Required under 16"
-      [error]="form.representant().errors()[0]?.message"
-    />
+    @if (!form.representant().hidden()) {
+      <ngt-input-text-field
+        label="Representant"
+        [field]="form.representant"
+        hint="Required under 16"
+        [error]="form.representant().errors()[0]?.message"
+      />
+    }
 
     <fieldset>
       <legend class="sr-only">Pets</legend>

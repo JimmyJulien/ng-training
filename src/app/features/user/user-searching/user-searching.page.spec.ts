@@ -208,6 +208,16 @@ const setup = async () => {
     });
   };
 
+  const typeEditionRepresentant = async (value: string) => {
+    const d = await dialog();
+
+    return typeInInput({
+      label: /Representant/,
+      value,
+      container: d,
+    });
+  };
+
   const typeEditionPassword = async (value: string) => {
     const d = await dialog();
 
@@ -273,6 +283,7 @@ const setup = async () => {
     typeEditionName,
     typeEditionEmail,
     typeEditionBirthdate,
+    typeEditionRepresentant,
     typeEditionPassword,
     typeEditionConfirmPassword,
     updateUser,
@@ -479,6 +490,54 @@ describe('UserSearchingPage', () => {
     await getUsers({ filters: {}, users: [] });
 
     await checkNoUser(USER.name);
+
+    httpTesting.verify();
+  });
+
+  test('should create a user under 16', async () => {
+    const {
+      httpTesting,
+      getUsers,
+      clickCreate,
+      createUser,
+      typeEditionName,
+      typeEditionEmail,
+      typeEditionBirthdate,
+      typeEditionRepresentant,
+      typeEditionPassword,
+      typeEditionConfirmPassword,
+      submitEdition,
+      checkUser,
+    } = await setup();
+
+    const initialUsers: UserModel[] = [];
+
+    await getUsers({ filters: {}, users: initialUsers });
+
+    const userToCreate: UserModel = { ...USER_UNDER_16, id: '' };
+
+    await clickCreate();
+
+    await typeEditionName(userToCreate.name);
+
+    await getUsers({
+      filters: { name: userToCreate.name },
+      users: [],
+    });
+
+    await typeEditionEmail(userToCreate.email);
+    await typeEditionBirthdate(userToCreate.birthdate);
+    await typeEditionRepresentant(userToCreate.representant!);
+    await typeEditionPassword(userToCreate.password);
+    await typeEditionConfirmPassword(userToCreate.password);
+
+    await submitEdition();
+
+    await createUser({ userToCreate, userCreated: USER_UNDER_16 });
+
+    await getUsers({ filters: {}, users: [...initialUsers, USER_UNDER_16] });
+
+    await checkUser(USER_UNDER_16.name);
 
     httpTesting.verify();
   });
