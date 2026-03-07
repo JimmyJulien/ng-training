@@ -18,7 +18,7 @@ export class LoginService {
 
     if (login === 'login' && password === 'password') {
       this.#appService.login();
-      this.#router.navigate([appRoutePaths.USER]);
+      this.#router.navigate([appRoutePaths.HOME]);
     } else {
       this.#areCredentialsInvalid.set(true);
     }
