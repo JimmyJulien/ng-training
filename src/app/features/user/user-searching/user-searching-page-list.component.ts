@@ -9,7 +9,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 import { UserModel } from '../user.models';
-import { UserSearchingPageService } from './user-searching-page.service';
+import { UserSearchingPageStore } from './user-searching-page.store';
 
 @Component({
   selector: 'ngt-user-searching-page-list',
@@ -26,30 +26,29 @@ import { UserSearchingPageService } from './user-searching-page.service';
   ],
   templateUrl: './user-searching-page-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [UserSearchingPageStore],
 })
 export class UserSearchingPageListComponent {
-  readonly #userSearchingPageService = inject(UserSearchingPageService);
+  readonly #userSearchingPageStore = inject(UserSearchingPageStore);
 
-  userList = this.#userSearchingPageService.userList;
+  userList = this.#userSearchingPageStore.userList;
+  isUserListPending = this.#userSearchingPageStore.isUserListPending;
 
   displayedColumns = ['name', 'email', 'birthdate', 'actions'];
 
+  constructor() {
+    this.#userSearchingPageStore.loadUsers({});
+  }
+
   createUser() {
-    this.#userSearchingPageService.editUser({
-      id: '',
-      name: '',
-      email: '',
-      birthdate: '',
-      pets: [],
-      password: '',
-    });
+    this.#userSearchingPageStore.createUser();
   }
 
   updateUser(userToUpdate: UserModel) {
-    this.#userSearchingPageService.editUser(userToUpdate);
+    this.#userSearchingPageStore.updateUser(userToUpdate);
   }
 
   deleteUser(userToDelete: UserModel) {
-    this.#userSearchingPageService.deleteUser(userToDelete);
+    this.#userSearchingPageStore.deleteUser(userToDelete);
   }
 }

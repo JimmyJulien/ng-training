@@ -20,7 +20,7 @@ import {
   renderApp,
   typeInInput,
 } from '@testing/utils/testing.utils';
-import { UserFiltersModel, UserModel } from '../user.models';
+import { UserEditionModel, UserFiltersModel, UserModel } from '../user.models';
 import { UserSearchingPage } from './user-searching.page';
 
 const setup = async () => {
@@ -60,7 +60,7 @@ const setup = async () => {
     userCreated,
     error,
   }: {
-    userToCreate: UserModel;
+    userToCreate: UserEditionModel;
     userCreated?: UserModel;
     error?: { message: string; status: number; statusText: string };
   }) => {
@@ -80,7 +80,7 @@ const setup = async () => {
     updatedUser,
     error,
   }: {
-    userToUpdate: UserModel;
+    userToUpdate: UserEditionModel;
     updatedUser?: UserModel;
     error?: { message: string; status: number; statusText: string };
   }) => {
@@ -429,7 +429,7 @@ describe('UserSearchingPage', () => {
 
     await getUsers({ filters: {}, users: initialUsers });
 
-    const userToCreate: UserModel = { ...USER, id: '' };
+    const userToCreate: UserEditionModel = { ...USER, id: undefined };
 
     await clickCreate();
 
@@ -550,7 +550,7 @@ describe('UserSearchingPage', () => {
 
     await getUsers({ filters: {}, users: initialUsers });
 
-    const userToCreate: UserModel = { ...USER_UNDER_16, id: '' };
+    const userToCreate: UserEditionModel = { ...USER_UNDER_16, id: undefined };
 
     await clickCreate();
 
@@ -599,7 +599,7 @@ describe('UserSearchingPage', () => {
 
     await getUsers({ filters: {}, users: initialUsers });
 
-    const userToCreate: UserModel = { ...USER_WITH_PETS, id: '' };
+    const userToCreate: UserEditionModel = { ...USER_WITH_PETS, id: undefined };
 
     await clickCreate();
 

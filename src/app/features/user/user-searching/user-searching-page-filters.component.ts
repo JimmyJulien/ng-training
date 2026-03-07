@@ -14,7 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { InputDateField } from '@common/components/input-date-field.component';
 import { InputTextField } from '@common/components/input-text-field.component';
 import { UserFiltersModel } from '../user.models';
-import { UserSearchingPageService } from './user-searching-page.service';
+import { UserSearchingPageStore } from './user-searching-page.store';
 
 @Component({
   selector: 'ngt-user-searching-page-filters',
@@ -30,9 +30,10 @@ import { UserSearchingPageService } from './user-searching-page.service';
   ],
   templateUrl: './user-searching-page-filters.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [UserSearchingPageStore],
 })
 export class UserSearchingPageFiltersComponent {
-  readonly #userSearchingPageService = inject(UserSearchingPageService);
+  readonly #userSearchingPageStore = inject(UserSearchingPageStore);
 
   formModel = signal<Required<UserFiltersModel>>({
     name: '',
@@ -51,6 +52,6 @@ export class UserSearchingPageFiltersComponent {
       birthdate: new Date(birthdate).toLocaleDateString(),
     };
 
-    this.#userSearchingPageService.filterUserList(filters);
+    this.#userSearchingPageStore.loadUsers(filters);
   }
 }
