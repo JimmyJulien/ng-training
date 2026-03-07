@@ -4,6 +4,10 @@ import {
   Provider,
 } from '@angular/core';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import {
+  provideClientHydration,
+  withEventReplay,
+} from '@angular/platform-browser';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { appRoutes } from '../routes/app.routes';
 import { provideCustomMaterial } from './material.providers';
@@ -15,4 +19,5 @@ export const appProviders: (Provider | EnvironmentProviders)[] = [
   provideNativeDateAdapter(),
   provideCustomMaterial(),
   provideCustomPlugins(),
+  provideClientHydration(withEventReplay()),
 ];
