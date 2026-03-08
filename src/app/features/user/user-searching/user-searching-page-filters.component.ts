@@ -5,32 +5,19 @@ import {
   signal,
 } from '@angular/core';
 import { form } from '@angular/forms/signals';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { InputDateField } from '@common/components/input-date-field.component';
 import { InputTextField } from '@common/components/input-text-field.component';
+import { ButtonModule } from 'primeng/button';
+import { PanelModule } from 'primeng/panel';
 import { UserFiltersModel } from '../user.models';
 import { UserSearchingPageStore } from './user-searching-page.store';
 
 @Component({
   selector: 'ngt-user-searching-page-filters',
-  imports: [
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatExpansionModule,
-    MatDatepickerModule,
-    InputTextField,
-    InputDateField,
-  ],
+  imports: [ButtonModule, PanelModule, InputTextField, InputDateField],
   templateUrl: './user-searching-page-filters.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [UserSearchingPageStore],
+  providers: [],
 })
 export class UserSearchingPageFiltersComponent {
   readonly #userSearchingPageStore = inject(UserSearchingPageStore);
@@ -38,7 +25,7 @@ export class UserSearchingPageFiltersComponent {
   formModel = signal<Required<UserFiltersModel>>({
     name: '',
     email: '',
-    birthdate: '', // Note: Date mais KO FieldTree
+    birthdate: '',
   });
 
   form = form(this.formModel);

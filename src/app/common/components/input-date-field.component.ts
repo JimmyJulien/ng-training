@@ -1,18 +1,24 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { FieldTree, FormField } from '@angular/forms/signals';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  input,
+  model,
+} from '@angular/core';
+import { FormField } from '@angular/forms/signals';
+import { DatePickerModule } from 'primeng/datepicker';
+import { MessageModule } from 'primeng/message';
 
 @Component({
   selector: 'ngt-input-date-field',
-  imports: [MatFormFieldModule, MatInputModule, MatDatepickerModule, FormField],
+  imports: [DatePickerModule, MessageModule, FormField],
   templateUrl: './input-date-field.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InputDateField {
+  value = model<Date | null>(null);
+  id = crypto.randomUUID();
   label = input.required<string>();
-  field = input.required<FieldTree<string, string>>();
+  field = input.required<any>();
   hint = input<string>();
-  error = input<string>();
+  error = input<string | null>();
 }

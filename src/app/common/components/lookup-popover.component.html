@@ -1,0 +1,16 @@
+@if (isOpened()) {
+  <div
+    [class]="[
+      'lookup-popover',
+      'shadow-(--p-overlay-popover-shadow)',
+      'border-(--p-overlay-popover-border-color)',
+      'rounded-(--p-overlay-popover-border-radius)',
+      'p-(--p-overlay-popover-padding)',
+      'bg-(--p-overlay-popover-background)',
+    ]"
+    cdkDrag
+    cdkDragBoundary=".p-dialog-mask"
+  >
+    <ng-content />
+  </div>
+}

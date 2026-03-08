@@ -1,13 +1,11 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { PanelModule } from 'primeng/panel';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TableModule } from 'primeng/table';
+import { TooltipModule } from 'primeng/tooltip';
 import { UserModel } from '../user.models';
 import { UserSearchingPageStore } from './user-searching-page.store';
 
@@ -15,18 +13,16 @@ import { UserSearchingPageStore } from './user-searching-page.store';
   selector: 'ngt-user-searching-page-list',
   imports: [
     RouterModule,
-    MatButtonModule,
-    MatTooltipModule,
-    MatProgressSpinnerModule,
-    MatTableModule,
-    MatDialogModule,
-    MatIconModule,
-    MatExpansionModule,
-    DatePipe,
+    ButtonModule,
+    TooltipModule,
+    ProgressSpinnerModule,
+    TableModule,
+    DialogModule,
+    PanelModule,
   ],
   templateUrl: './user-searching-page-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [UserSearchingPageStore],
+  providers: [],
 })
 export class UserSearchingPageListComponent {
   readonly #userSearchingPageStore = inject(UserSearchingPageStore);

@@ -1,9 +1,15 @@
-import { inject } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { effect, inject } from '@angular/core';
 import { AppService } from '@core/services/app.service';
-import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
+import {
+  patchState,
+  signalStore,
+  withHooks,
+  withMethods,
+  withState,
+} from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
+import { MessageService } from 'primeng/api';
+import { DialogService } from 'primeng/dynamicdialog';
 import {
   catchError,
   EMPTY,
@@ -34,35 +40,34 @@ const initialState: UserSearchingPageState = {
 };
 
 export const UserSearchingPageStore = signalStore(
-  { providedIn: 'root' },
   withState<UserSearchingPageState>(initialState),
   withMethods((store) => {
     const userRepository = inject(UserRepository);
     const appService = inject(AppService);
-    const snackbar = inject(MatSnackBar);
-    const dialog = inject(MatDialog);
+    const dialogService = inject(DialogService);
+    const messageService = inject(MessageService);
 
     const openEditionDialog = (
       userToEdit?: UserModel,
     ): Observable<UserEditionModel | undefined> => {
-      return dialog
-        .open(UserEditionDialog, {
-          disableClose: true,
-          width: '50vw',
-          data: userToEdit,
-        })
-        .afterClosed();
+      return dialogService.open(UserEditionDialog, {
+        header: 'User edition',
+        closable: true,
+        width: '50vw',
+        inputValues: userToEdit,
+      })!.onClose;
     };
 
     const openDeletionDialog = (
       userToDelete: UserModel,
     ): Observable<UserModel | undefined> => {
-      return dialog
+      return dialogService
         .open(UserDeletionDialog, {
-          disableClose: true,
-        })
-        .afterClosed()
-        .pipe(
+          header: 'User deletion',
+          closable: true,
+          width: '400px',
+        })!
+        .onClose.pipe(
           map((isConfirmed: boolean) =>
             isConfirmed ? userToDelete : undefined,
           ),
@@ -70,7 +75,11 @@ export const UserSearchingPageStore = signalStore(
     };
 
     const handleSuccess = (message: string) => {
-      snackbar.open(message, 'Close');
+      messageService.add({
+        severity: 'success',
+        summary: 'Success !',
+        detail: message,
+      });
     };
 
     const handleError = <T>({
@@ -83,7 +92,11 @@ export const UserSearchingPageStore = signalStore(
       returnedValue?: Observable<T>;
     }) => {
       console.error(functionalMessage, error);
-      snackbar.open(functionalMessage, 'Close');
+      messageService.add({
+        severity: 'error',
+        summary: 'Error !',
+        detail: functionalMessage,
+      });
       return returnedValue;
     };
 
@@ -92,20 +105,23 @@ export const UserSearchingPageStore = signalStore(
     ): Observable<UserModel[]> => {
       return source$.pipe(
         tap(() => patchState(store, { isUserListPending: true })),
-        switchMap((userFilters) => userRepository.getUsers(userFilters)),
+        switchMap((userFilters) =>
+          userRepository.getUsers(userFilters).pipe(
+            catchError((error) => {
+              patchState(store, {
+                isUserListPending: false,
+              });
+              return handleError({
+                error,
+                functionalMessage: 'Error fetching users',
+                returnedValue: of([]),
+              });
+            }),
+          ),
+        ),
         tap((userList) =>
           patchState(store, { userList, isUserListPending: false }),
         ),
-        catchError((error) => {
-          patchState(store, {
-            isUserListPending: false,
-          });
-          return handleError({
-            error,
-            functionalMessage: 'Error fetching users',
-            returnedValue: of([]),
-          });
-        }),
       );
     };
 
@@ -197,5 +213,22 @@ export const UserSearchingPageStore = signalStore(
       updateUser,
       deleteUser,
     };
+  }),
+  withHooks({
+    onInit: (store) => {
+      effect(() => {
+        console.debug(
+          'user-searching-page-store:isUserListPending',
+          store.isUserListPending(),
+        );
+
+        console.debug('user-searching-page-store:userList', store.userList());
+
+        console.debug(
+          'user-searching-page-store:userFilters',
+          store.userFilters(),
+        );
+      });
+    },
   }),
 );

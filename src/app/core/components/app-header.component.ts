@@ -1,18 +1,28 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router, RouterModule } from '@angular/router';
 import { appRoutePaths } from '@core/routes/app.routes';
-import { AppService } from '../services/app.service';
+import { AppService } from '@core/services/app.service';
+import { ButtonModule } from 'primeng/button';
+import { ToolbarModule } from 'primeng/toolbar';
 
 @Component({
   selector: 'ngt-header',
-  imports: [RouterModule, MatToolbarModule, MatIconModule, MatButtonModule],
+  imports: [RouterModule, ToolbarModule, ButtonModule],
   template: `
-    <mat-toolbar class="!grid !grid-cols-[auto_1fr_auto] !pl-0">
+    <p-toolbar class="grid! grid-cols-[auto_1fr_auto]! p-0! pr-2! min-h-16">
       <div
-        class="h-full pl-4 pr-8 flex items-center bg-(--mat-sys-primary) text-(--mat-sys-on-primary) [clip-path:polygon(0_0,100%_0,90%_100%,0_100%)]"
+        [class]="[
+          'h-full',
+          'pl-4',
+          'pr-8',
+          'flex',
+          'items-center',
+          'bg-primary',
+          'text-white',
+          'text-xl',
+          'font-semibold',
+          '[clip-path:polygon(0_0,100%_0,90%_100%,0_100%)]',
+        ]"
       >
         NG TRAINING
       </div>
@@ -22,7 +32,7 @@ import { AppService } from '../services/app.service';
             <a
               class="flex h-full items-center px-4 box-content"
               routerLink="user"
-              routerLinkActive="border-b-3"
+              routerLinkActive="border-b-3 text-primary"
             >
               USER
             </a>
@@ -31,13 +41,15 @@ import { AppService } from '../services/app.service';
       </ul>
       <div>
         @if (isConnected()) {
-          <button matButton="outlined" (click)="logout()">
-            <mat-icon>person</mat-icon>
-            Logout
-          </button>
+          <p-button
+            icon="pi pi-user"
+            label="Log out"
+            size="small"
+            (click)="logout()"
+          />
         }
       </div>
-    </mat-toolbar>
+    </p-toolbar>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

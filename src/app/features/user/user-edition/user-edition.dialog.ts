@@ -10,28 +10,30 @@ import {
   debounce,
   email,
   form,
+  FormField,
   hidden,
   minLength,
   required,
   validate,
 } from '@angular/forms/signals';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { InputDateField } from '@common/components/input-date-field.component';
 import { InputTextField } from '@common/components/input-text-field.component';
+import { LookupPopoverComponent } from '@common/components/lookup-popover.component';
 import { stringBetween, unique } from '@common/validators/common.validators';
-import { UserEditionModel } from '../user.models';
+import { MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { InputTextModule } from 'primeng/inputtext';
+import { MessageModule } from 'primeng/message';
+import { TableModule } from 'primeng/table';
+import { TooltipModule } from 'primeng/tooltip';
+import { UserEditionModel, UserModel } from '../user.models';
 import { UserService } from '../user.service';
 import { isUnderAge } from '../user.utils';
+import { UserEditionDialogStore } from './user-edition-dialog.store';
 
 type UserEditionFormModel = Required<Omit<UserEditionModel, 'id' | 'pets'>> & {
   confirmPassword: string;
@@ -40,28 +42,35 @@ type UserEditionFormModel = Required<Omit<UserEditionModel, 'id' | 'pets'>> & {
 
 @Component({
   selector: 'ngt-user-edition-dialog',
-  imports: [
-    MatDialogModule,
-    MatButtonModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatDatepickerModule,
-    MatTooltipModule,
-    InputTextField,
-    InputDateField,
-  ],
   templateUrl: './user-edition.dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    DialogModule,
+    ButtonModule,
+    TooltipModule,
+    InputTextField,
+    InputDateField,
+    MessageModule,
+    InputTextModule,
+    TableModule,
+    InputGroupModule,
+    InputGroupAddonModule,
+    FormField,
+    LookupPopoverComponent,
+  ],
+  providers: [UserEditionDialogStore, MessageService],
 })
 export class UserEditionDialog {
+  protected readonly userEditionDialogStore = inject(UserEditionDialogStore);
+
+  // TODO JJN à déplacer dans le store
   readonly #userService = inject(UserService);
 
-  protected readonly userToEdit = inject<UserEditionModel | undefined>(
-    MAT_DIALOG_DATA,
-  );
+  readonly #dialogRef = inject(DynamicDialogRef);
 
-  readonly #dialogRef = inject(MatDialogRef);
+  readonly #dialogConfig = inject(DynamicDialogConfig);
+
+  protected readonly userToEdit = this.#dialogConfig.inputValues;
 
   formModel = signal<UserEditionFormModel>({
     name: this.userToEdit?.name ?? '',
@@ -158,6 +167,10 @@ export class UserEditionDialog {
     });
   }
 
+  onCancel() {
+    this.#dialogRef.close(null);
+  }
+
   onSubmit() {
     const { name, email, birthdate, pets, representant, password } =
       this.form().value();
@@ -177,4 +190,32 @@ export class UserEditionDialog {
 
     this.#dialogRef.close(userToEdit);
   }
+
+  selectedRepresentant: UserModel | null = null;
+
+  isLookupOpened = signal<boolean>(false);
+
+  toggleLookup() {
+    this.isLookupOpened.update((isOpened) => !isOpened);
+  }
+
+  onRepresentantSelection() {
+    if (this.selectedRepresentant) {
+      this.form.representant().controlValue.set(this.selectedRepresentant.name);
+      this.toggleLookup();
+    }
+  }
+
+  // lookupPopover = viewChild<Popover>('lookupPopover');
+
+  // toggleLookup(event: Event) {
+  //   this.lookupPopover()?.toggle(event);
+  // }
+
+  // onRepresentantSelection(event: Event) {
+  //   if (this.selectedRepresentant) {
+  //     this.form.representant().controlValue.set(this.selectedRepresentant.name);
+  //     this.toggleLookup();
+  //   }
+  // }
 }

@@ -6,10 +6,10 @@ import {
   signal,
 } from '@angular/core';
 import { form } from '@angular/forms/signals';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatError } from '@angular/material/form-field';
 import { InputTextField } from '@common/components/input-text-field.component';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { MessageModule } from 'primeng/message';
 import { LoginService } from './login.service';
 
 export interface LoginFormModel {
@@ -19,7 +19,7 @@ export interface LoginFormModel {
 
 @Component({
   selector: 'ngt-login-page',
-  imports: [InputTextField, MatButtonModule, MatCardModule, MatError],
+  imports: [InputTextField, ButtonModule, CardModule, MessageModule],
   templateUrl: './login.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

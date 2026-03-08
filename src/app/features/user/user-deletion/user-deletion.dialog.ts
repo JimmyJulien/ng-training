@@ -1,13 +1,19 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { DynamicDialogRef } from 'primeng/dynamicdialog';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'ngt-user-deletion.dialog',
-  imports: [MatDialogModule, MatButtonModule, MatIconModule, MatTooltipModule],
+  imports: [DialogModule, ButtonModule, TooltipModule],
   templateUrl: './user-deletion.dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UserDeletionDialog {}
+export class UserDeletionDialog {
+  readonly #dialogRef = inject(DynamicDialogRef);
+
+  close(value: boolean) {
+    this.#dialogRef.close(value);
+  }
+}
