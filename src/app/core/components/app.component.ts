@@ -1,16 +1,22 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { AppLayout } from '@core/components/app-layout.component';
+import { AppService } from '@core/services/app.service';
+import { MessageService } from 'primeng/api';
+import { DialogService } from 'primeng/dynamicdialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { AppService } from '../services/app.service';
-import { AppLayout } from './app-layout.component';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'ngt-root',
-  imports: [RouterOutlet, AppLayout, ProgressSpinnerModule],
+  imports: [RouterOutlet, AppLayout, ProgressSpinnerModule, ToastModule],
+  providers: [DialogService, MessageService],
   template: `
     <ngt-layout>
       <router-outlet />
     </ngt-layout>
+
+    <p-toast />
 
     @if (isUiLocked()) {
       <div

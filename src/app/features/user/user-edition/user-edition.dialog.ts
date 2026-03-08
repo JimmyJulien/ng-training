@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  HostBinding,
   inject,
   signal,
 } from '@angular/core';
@@ -20,7 +21,6 @@ import { InputDateField } from '@common/components/input-date-field.component';
 import { InputTextField } from '@common/components/input-text-field.component';
 import { LookupPopoverComponent } from '@common/components/lookup-popover.component';
 import { stringBetween, unique } from '@common/validators/common.validators';
-import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -30,8 +30,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
+import { map } from 'rxjs';
 import { UserEditionModel, UserModel } from '../user.models';
-import { UserService } from '../user.service';
+import { UserRepository } from '../user.repository';
 import { isUnderAge } from '../user.utils';
 import { UserEditionDialogStore } from './user-edition-dialog.store';
 
@@ -58,17 +59,24 @@ type UserEditionFormModel = Required<Omit<UserEditionModel, 'id' | 'pets'>> & {
     FormField,
     LookupPopoverComponent,
   ],
-  providers: [UserEditionDialogStore, MessageService],
+  providers: [UserEditionDialogStore],
 })
 export class UserEditionDialog {
+  @HostBinding('attr.data-testid')
+  dataTestId = 'user-edition-dialog';
+
   protected readonly userEditionDialogStore = inject(UserEditionDialogStore);
 
   // TODO JJN à déplacer dans le store
-  readonly #userService = inject(UserService);
+  readonly #userRepository = inject(UserRepository);
 
   readonly #dialogRef = inject(DynamicDialogRef);
 
   readonly #dialogConfig = inject(DynamicDialogConfig);
+
+  constructor() {
+    this.userEditionDialogStore.loadUsers();
+  }
 
   protected readonly userToEdit = this.#dialogConfig.inputValues;
 
@@ -89,7 +97,8 @@ export class UserEditionDialog {
     // CUSTOM ASYNC VALIDATOR
     unique({
       path: schema.name,
-      checkFn: (params: string) => this.#userService.existUserByName(params),
+      checkFn: (params: string) =>
+        this.#userRepository.getUserByName(params).pipe(map((user) => !!user)),
     });
 
     required(schema.email, { message: 'Email is required' });
@@ -205,17 +214,4 @@ export class UserEditionDialog {
       this.toggleLookup();
     }
   }
-
-  // lookupPopover = viewChild<Popover>('lookupPopover');
-
-  // toggleLookup(event: Event) {
-  //   this.lookupPopover()?.toggle(event);
-  // }
-
-  // onRepresentantSelection(event: Event) {
-  //   if (this.selectedRepresentant) {
-  //     this.form.representant().controlValue.set(this.selectedRepresentant.name);
-  //     this.toggleLookup();
-  //   }
-  // }
 }

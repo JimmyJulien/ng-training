@@ -78,8 +78,6 @@ export const UserEditionDialogStore = signalStore(
   }),
   withHooks({
     onInit: (store) => {
-      store.loadUsers();
-
       effect(() => {
         console.debug(
           'user-edition-dialog-store:isRepresentantListPending',

@@ -45,10 +45,48 @@ const setup = async () => {
     error?: { message: string; status: number; statusText: string };
   }) => {
     await waitFor(() => {
+      const jsonServerFilters: {
+        'name:contains'?: string;
+        'email:contains'?: string;
+        birthdate?: string;
+      } = {};
+
+      if (filters.name) {
+        jsonServerFilters['name:contains'] = filters.name;
+      }
+
+      if (filters.email) {
+        jsonServerFilters['email:contains'] = filters.email;
+      }
+
+      if (filters.birthdate && filters.birthdate !== 'Invalid Date') {
+        jsonServerFilters['birthdate'] = filters.birthdate;
+      }
+
       httpGet({
         httpTesting,
         apiUrl: USER_API_URL,
-        params: filters,
+        params: jsonServerFilters,
+        successData: users,
+        errorData: error,
+      });
+    });
+  };
+
+  const getUserByName = async ({
+    name,
+    users,
+    error,
+  }: {
+    name: UserModel['name'];
+    users?: UserModel[];
+    error?: { message: string; status: number; statusText: string };
+  }) => {
+    await waitFor(() => {
+      httpGet({
+        httpTesting,
+        apiUrl: USER_API_URL,
+        params: { name },
         successData: users,
         errorData: error,
       });
@@ -178,63 +216,55 @@ const setup = async () => {
     });
   };
 
-  const typeEditionName = async (value: string) => {
-    const d = await dialog();
+  const editionDialog = async () => {
+    return screen.findByTestId('user-edition-dialog');
+  };
 
+  const typeEditionName = async (value: string) => {
     return typeInInput({
       label: /Name/,
       value,
-      container: d,
+      container: await editionDialog(),
     });
   };
 
   const typeEditionEmail = async (value: string) => {
-    const d = await dialog();
-
     return typeInInput({
       label: /Email/,
       value,
-      container: d,
+      container: await editionDialog(),
     });
   };
 
   const typeEditionBirthdate = async (value: string) => {
-    const d = await dialog();
-
     return typeInInput({
       label: /Birth Date/,
       value,
-      container: d,
+      container: await editionDialog(),
     });
   };
 
   const typeEditionRepresentant = async (value: string) => {
-    const d = await dialog();
-
     return typeInInput({
       label: /Representant/,
       value,
-      container: d,
+      container: await editionDialog(),
     });
   };
 
   const typeEditionPassword = async (value: string) => {
-    const d = await dialog();
-
     return typeInInput({
       label: 'Password',
       value,
-      container: d,
+      container: await editionDialog(),
     });
   };
 
   const typeEditionConfirmPassword = async (value: string) => {
-    const d = await dialog();
-
     return typeInInput({
       label: /Confirm password/,
       value,
-      container: d,
+      container: await editionDialog(),
     });
   };
 
@@ -245,16 +275,15 @@ const setup = async () => {
     index: number;
     value: string;
   }) => {
-    const d = await dialog();
     return typeInInput({
       label: `Pet ${index + 1}`,
       value,
-      container: d,
+      container: await editionDialog(),
     });
   };
 
   const addEditionPet = async () => {
-    const d = await dialog();
+    const d = await editionDialog();
     const buttons = await within(d).findAllByRole('button', {
       name: /Add a pet/,
     });
@@ -263,7 +292,7 @@ const setup = async () => {
   };
 
   const removeEditionPet = async () => {
-    const d = await dialog();
+    const d = await editionDialog();
     const buttons = await within(d).findAllByRole('button', {
       name: /Remove a pet/,
     });
@@ -272,7 +301,7 @@ const setup = async () => {
   };
 
   const submitEdition = async () => {
-    const d = await dialog();
+    const d = await editionDialog();
     return clickButton({ label: /Submit/, container: d });
   };
 
@@ -293,13 +322,13 @@ const setup = async () => {
     });
   };
 
-  const checkNoResult = async () => {
-    const u = await user(/No result/);
+  const checkNoData = async () => {
+    const u = await user(/No data found/);
     expect(u).toBeDefined();
   };
 
   const checkAlert = async () => {
-    const alert = await screen.findByText(/Error/);
+    const alert = await screen.findByText(/Error fetching users/);
     expect(alert).toBeDefined();
   };
 
@@ -308,6 +337,7 @@ const setup = async () => {
     createButton,
     createUser,
     getUsers,
+    getUserByName,
     clickCreate,
     clickDelete,
     clickEdit,
@@ -323,7 +353,7 @@ const setup = async () => {
     updateUser,
     deleteUser,
     checkAlert,
-    checkNoResult,
+    checkNoData,
     checkUser,
     checkNoUser,
     clickFilter,
@@ -351,12 +381,12 @@ describe('UserSearchingPage', () => {
     httpTesting.verify();
   });
 
-  test('should show no result', async () => {
-    const { httpTesting, getUsers, checkNoResult } = await setup();
+  test('should show no data found message', async () => {
+    const { httpTesting, getUsers, checkNoData } = await setup();
 
     await getUsers({ filters: {}, users: [] });
 
-    await checkNoResult();
+    await checkNoData();
 
     httpTesting.verify();
   });
@@ -385,27 +415,31 @@ describe('UserSearchingPage', () => {
       clickFilter,
     } = await setup();
 
+    const initialUsers: UserModel[] = [USER, USER_UNDER_16, USER_WITH_PETS];
+
     await getUsers({
       filters: {},
       users: [USER, USER_UNDER_16, USER_WITH_PETS],
     });
 
-    await typeFilterName(USER.name);
-    await typeFilterEmail(USER.email);
-    await typeFilterBirthdate(USER.birthdate);
+    const selectedUser = initialUsers[2];
+
+    await typeFilterName(selectedUser.name);
+    await typeFilterEmail(selectedUser.email);
+    await typeFilterBirthdate(selectedUser.birthdate);
 
     await clickFilter();
 
     await getUsers({
       filters: {
-        name: USER.name,
-        email: USER.email,
-        birthdate: USER.birthdate,
+        name: selectedUser.name,
+        email: selectedUser.email,
+        birthdate: selectedUser.birthdate,
       },
-      users: [USER],
+      users: [selectedUser],
     });
 
-    await checkUser(USER.name);
+    await checkUser(selectedUser.name);
 
     httpTesting.verify();
   });
@@ -414,6 +448,7 @@ describe('UserSearchingPage', () => {
     const {
       httpTesting,
       getUsers,
+      getUserByName,
       clickCreate,
       createUser,
       typeEditionName,
@@ -425,18 +460,26 @@ describe('UserSearchingPage', () => {
       checkUser,
     } = await setup();
 
-    const initialUsers: UserModel[] = [];
+    const initialUsers: UserModel[] = [USER];
 
+    // Récupération de la liste d'utilisateur initiale
     await getUsers({ filters: {}, users: initialUsers });
 
     const userToCreate: UserEditionModel = { ...USER, id: undefined };
 
     await clickCreate();
 
+    // Récupération des représentants
+    await getUsers({
+      filters: {},
+      users: initialUsers,
+    });
+
     await typeEditionName(userToCreate.name);
 
-    await getUsers({
-      filters: { name: userToCreate.name },
+    // Vérification existence nom
+    await getUserByName({
+      name: userToCreate.name,
       users: [],
     });
 
@@ -447,8 +490,10 @@ describe('UserSearchingPage', () => {
 
     await submitEdition();
 
+    // Création du nouvel utilisateur
     await createUser({ userToCreate, userCreated: USER });
 
+    // Récupération de la liste d'utilisateur à jour
     await getUsers({ filters: {}, users: [...initialUsers, USER] });
 
     await checkUser(USER.name);
@@ -460,6 +505,7 @@ describe('UserSearchingPage', () => {
     const {
       httpTesting,
       getUsers,
+      getUserByName,
       clickEdit,
       typeEditionName,
       submitEdition,
@@ -475,10 +521,16 @@ describe('UserSearchingPage', () => {
 
     await clickEdit(userToUpdate.name);
 
-    // Note: validateur async se déclenche immédiatement
+    // Récupération des représentants
     await getUsers({
-      filters: { name: userToUpdate.name },
-      users: [userToUpdate],
+      filters: {},
+      users: initialUsers,
+    });
+
+    // Note: validateur async se déclenche immédiatement
+    await getUserByName({
+      name: userToUpdate.name,
+      users: [USER],
     });
 
     const addedToUserName = 'UPDATED';
@@ -488,7 +540,10 @@ describe('UserSearchingPage', () => {
 
     userToUpdate.name = `${userToUpdate.name}${addedToUserName}`;
 
-    await getUsers({ filters: { name: userToUpdate.name }, users: [] });
+    await getUserByName({
+      name: userToUpdate.name,
+      users: [],
+    });
 
     await submitEdition();
 
@@ -534,6 +589,7 @@ describe('UserSearchingPage', () => {
     const {
       httpTesting,
       getUsers,
+      getUserByName,
       clickCreate,
       createUser,
       typeEditionName,
@@ -546,7 +602,7 @@ describe('UserSearchingPage', () => {
       checkUser,
     } = await setup();
 
-    const initialUsers: UserModel[] = [];
+    const initialUsers: UserModel[] = [USER];
 
     await getUsers({ filters: {}, users: initialUsers });
 
@@ -554,10 +610,16 @@ describe('UserSearchingPage', () => {
 
     await clickCreate();
 
+    // Récupération des représentants
+    await getUsers({
+      filters: {},
+      users: initialUsers,
+    });
+
     await typeEditionName(userToCreate.name);
 
-    await getUsers({
-      filters: { name: userToCreate.name },
+    await getUserByName({
+      name: userToCreate.name,
       users: [],
     });
 
@@ -582,6 +644,7 @@ describe('UserSearchingPage', () => {
     const {
       httpTesting,
       getUsers,
+      getUserByName,
       clickCreate,
       createUser,
       typeEditionName,
@@ -595,7 +658,7 @@ describe('UserSearchingPage', () => {
       addEditionPet,
     } = await setup();
 
-    const initialUsers: UserModel[] = [];
+    const initialUsers: UserModel[] = [USER];
 
     await getUsers({ filters: {}, users: initialUsers });
 
@@ -603,10 +666,16 @@ describe('UserSearchingPage', () => {
 
     await clickCreate();
 
+    // Récupération des représentants
+    await getUsers({
+      filters: {},
+      users: initialUsers,
+    });
+
     await typeEditionName(userToCreate.name);
 
-    await getUsers({
-      filters: { name: userToCreate.name },
+    await getUserByName({
+      name: userToCreate.name,
       users: [],
     });
 

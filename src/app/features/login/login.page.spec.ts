@@ -71,7 +71,7 @@ describe('LoginPage', () => {
     await typeInPassword('password');
     await clickLoginButton();
 
-    await checkMainTitle(/Search users/);
+    await checkMainTitle(/Let's train/);
   });
 
   test.each([

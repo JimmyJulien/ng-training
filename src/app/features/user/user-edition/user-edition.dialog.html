@@ -49,6 +49,7 @@
             size="small"
             variant="text"
             ariaLabel="Search a representant"
+            pTooltip="Search a representant"
             (click)="toggleLookup()"
           />
         </p-inputgroup-addon>
@@ -131,7 +132,8 @@
           <p-button
             icon="pi pi-plus"
             size="small"
-            title="Add a pet"
+            ariaLabel="Add a pet"
+            pTooltip="Add a pet"
             type="button"
             (click)="addPet()"
           />
@@ -139,7 +141,8 @@
           <p-button
             icon="pi pi-minus"
             size="small"
-            title="Remove a pet"
+            ariaLabel="Remove a pet"
+            pTooltip="Remove a pet"
             type="button"
             (click)="removePet($index)"
           />

@@ -6,10 +6,11 @@
         User list
       </h2>
       <p-button
+        data-testid="create-button"
         icon="pi pi-plus"
         label="Create"
+        size="small"
         (click)="createUser()"
-        data-testid="create-button"
       />
     </div>
   </ng-template>
@@ -25,24 +26,25 @@
     stripedRows
     [value]="userList()"
   >
-    <ng-template #emptymessage>
-      <tr>
-        <td colspan="4">
-          <div class="min-h-48 grid items-center justify-center text-center">
-            <div>
-              <span class="pi pi-filter-slash text-4xl!"></span>
-              <p class="text-xl">No data found</p>
-            </div>
-          </div>
-        </td>
-      </tr>
-    </ng-template>
     <ng-template #header>
       <tr>
         <th>NAME</th>
         <th>EMAIL</th>
         <th>BIRTH DATE</th>
         <th></th>
+      </tr>
+    </ng-template>
+
+    <ng-template #loadingbody>
+      <tr>
+        <td colspan="4">
+          <div class="min-h-48 grid items-center justify-center text-center">
+            <div>
+              <span class="pi pi-search text-4xl!"></span>
+              <p class="text-xl">Loading data...</p>
+            </div>
+          </div>
+        </td>
       </tr>
     </ng-template>
 
@@ -66,7 +68,8 @@
                 icon="pi pi-trash"
                 severity="danger"
                 size="small"
-                [title]="`Delete user ${user.name}`"
+                [ariaLabel]="`Delete user ${user.name}`"
+                [pTooltip]="`Delete user ${user.name}`"
                 (click)="deleteUser(user)"
               />
             </li>
@@ -75,11 +78,25 @@
                 icon="pi pi-pencil"
                 severity="info"
                 size="small"
-                [title]="`Edit user ${user.name}`"
+                [ariaLabel]="`Edit user ${user.name}`"
+                [pTooltip]="`Edit user ${user.name}`"
                 (click)="updateUser(user)"
               />
             </li>
           </ul>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="4">
+          <div class="min-h-48 grid items-center justify-center text-center">
+            <div>
+              <span class="pi pi-filter-slash text-4xl!"></span>
+              <p class="text-xl">No data found</p>
+            </div>
+          </div>
         </td>
       </tr>
     </ng-template>

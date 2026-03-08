@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { USER_API_URL } from '@common/constants/api.constants';
-import { Observable, switchMap, timer } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { UserEditionModel, UserFiltersModel, UserModel } from './user.models';
 
 @Injectable({
@@ -11,6 +11,7 @@ export class UserRepository {
   readonly #http = inject(HttpClient);
 
   getUsers(filters: UserFiltersModel): Observable<UserModel[]> {
+    // TODO JJN à factoriser
     const jsonServerFilters: {
       'name:contains'?: string;
       'email:contains'?: string;
@@ -29,17 +30,15 @@ export class UserRepository {
       jsonServerFilters['birthdate'] = filters.birthdate;
     }
 
-    return timer(2000).pipe(
-      switchMap(() =>
-        this.#http.get<UserModel[]>(USER_API_URL, {
-          params: jsonServerFilters,
-        }),
-      ),
-    );
+    return this.#http.get<UserModel[]>(USER_API_URL, {
+      params: jsonServerFilters,
+    });
+  }
 
-    // return this.#http.get<UserModel[]>(USER_API_URL, {
-    //   params: jsonServerFilters,
-    // });
+  getUserByName(name: UserModel['name']): Observable<UserModel | null> {
+    return this.#http
+      .get<UserModel[]>(USER_API_URL, { params: { name } })
+      .pipe(map((users) => (users.length === 1 ? users[0] : null)));
   }
 
   createUser(userToCreate: UserEditionModel): Observable<UserModel> {
