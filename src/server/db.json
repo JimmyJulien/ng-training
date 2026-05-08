@@ -10301,6 +10301,23 @@
       "birthdate": "05/09/1992",
       "pets": [],
       "password": "yghogkam"
+    },
+    {
+      "id": "37f5",
+      "name": "Testt",
+      "email": "testt@mail.com",
+      "birthdate": "18/05/2026",
+      "pets": [],
+      "password": "pppppppp",
+      "representant": "Test"
+    },
+    {
+      "id": "6b98",
+      "name": "Testtt",
+      "email": "testtt@mail.com",
+      "birthdate": "11/11/2000",
+      "pets": [],
+      "password": "pppppppp"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

@@ -3,7 +3,10 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 @Component({
   selector: 'ngt-user-details',
   imports: [],
-  templateUrl: './user-details.page.html',
+  template: `
+    <p>user-details.page works!</p>
+    <p>{{ userName() }}</p>
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserDetailsPage {

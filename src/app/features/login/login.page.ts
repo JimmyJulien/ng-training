@@ -1,7 +1,6 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  HostBinding,
   inject,
   signal,
 } from '@angular/core';
@@ -20,13 +19,34 @@ export interface LoginFormModel {
 @Component({
   selector: 'ngt-login-page',
   imports: [InputTextField, ButtonModule, CardModule, MessageModule],
-  templateUrl: './login.page.html',
+  template: `
+    <p-card>
+      <ng-template #header>
+        <ng-template #title>Log in</ng-template>
+      </ng-template>
+
+      <form class="grid gap-4 p-8" (submit.prevent)="login()">
+        <ngt-input-text-field label="Login" [field]="form.login" />
+        <ngt-input-text-field
+          label="Password"
+          [field]="form.password"
+          inputType="password"
+        />
+        @if (areCredentialsInvalid()) {
+          <p-message severity="error" variant="simple" size="small">
+            Invalid credentials
+          </p-message>
+        }
+        <p-button type="submit" label="Log in" />
+      </form>
+    </p-card>
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'h-full flex items-center justify-center',
+  },
 })
 export class LoginPage {
-  @HostBinding('class')
-  class = 'h-full flex items-center justify-center';
-
   readonly #loginService = inject(LoginService);
 
   areCredentialsInvalid = this.#loginService.areCredentialsInvalid;

@@ -11,7 +11,21 @@ import { MessageModule } from 'primeng/message';
 @Component({
   selector: 'ngt-input-date-field',
   imports: [DatePickerModule, MessageModule, FormField],
-  templateUrl: './input-date-field.component.html',
+  template: `
+    <div class="grid gap-1 w-full">
+      <label [for]="id">{{ label() }}</label>
+      <p-datepicker showIcon [inputId]="id" [formField]="field()" />
+      @if (error()) {
+        <p-message severity="error" variant="simple" size="small">{{
+          error()
+        }}</p-message>
+      } @else if (hint()) {
+        <p-message severity="contrast" variant="simple" size="small">{{
+          hint()
+        }}</p-message>
+      }
+    </div>
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InputDateField {

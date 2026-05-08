@@ -29,8 +29,8 @@ h2 {
   position-anchor: --lookup-trigger;
   position-try-fallbacks: --top;
   top: anchor(bottom);
-  justify-self: center;
-  width: calc(100% - 4rem); // TODO JJN à revoir car arbitraire
+  overflow: auto;
+  width: calc(100% - 3rem);
 }
 
 @position-try --top {

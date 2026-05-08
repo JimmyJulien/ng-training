@@ -1,7 +1,6 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  HostBinding,
   inject,
   signal,
 } from '@angular/core';
@@ -11,7 +10,6 @@ import {
   debounce,
   email,
   form,
-  FormField,
   hidden,
   minLength,
   required,
@@ -19,7 +17,6 @@ import {
 } from '@angular/forms/signals';
 import { InputDateField } from '@common/components/input-date-field.component';
 import { InputTextField } from '@common/components/input-text-field.component';
-import { LookupPopoverComponent } from '@common/components/lookup-popover.component';
 import { stringBetween, unique } from '@common/validators/common.validators';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -31,7 +28,7 @@ import { MessageModule } from 'primeng/message';
 import { TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 import { map } from 'rxjs';
-import { UserEditionModel, UserModel } from '../user.models';
+import { UserEditionModel } from '../user.models';
 import { UserRepository } from '../user.repository';
 import { isUnderAge } from '../user.utils';
 import { UserEditionDialogStore } from './user-edition-dialog.store';
@@ -44,7 +41,6 @@ type UserEditionFormModel = Required<Omit<UserEditionModel, 'id' | 'pets'>> & {
 @Component({
   selector: 'ngt-user-edition-dialog',
   templateUrl: './user-edition.dialog.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DialogModule,
     ButtonModule,
@@ -56,15 +52,14 @@ type UserEditionFormModel = Required<Omit<UserEditionModel, 'id' | 'pets'>> & {
     TableModule,
     InputGroupModule,
     InputGroupAddonModule,
-    FormField,
-    LookupPopoverComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [UserEditionDialogStore],
+  host: {
+    'data-testid': 'user-edition-dialog',
+  },
 })
 export class UserEditionDialog {
-  @HostBinding('attr.data-testid')
-  dataTestId = 'user-edition-dialog';
-
   protected readonly userEditionDialogStore = inject(UserEditionDialogStore);
 
   // TODO JJN à déplacer dans le store
@@ -198,20 +193,5 @@ export class UserEditionDialog {
     }
 
     this.#dialogRef.close(userToEdit);
-  }
-
-  selectedRepresentant: UserModel | null = null;
-
-  isLookupOpened = signal<boolean>(false);
-
-  toggleLookup() {
-    this.isLookupOpened.update((isOpened) => !isOpened);
-  }
-
-  onRepresentantSelection() {
-    if (this.selectedRepresentant) {
-      this.form.representant().controlValue.set(this.selectedRepresentant.name);
-      this.toggleLookup();
-    }
   }
 }
